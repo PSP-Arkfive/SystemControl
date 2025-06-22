@@ -1,0 +1,15 @@
+[submodule "libs/libpspsemaphore"]
+	path = libs/libpspsemaphore
+	url = git@github.com:PSP-Arkfive/libpspsemaphore.git
+[submodule "libs/ansi-c"]
+	path = libs/ansi-c
+	url = git@github.com:PSP-Arkfive/ansi-c.git
+[submodule "libs/libsploit"]
+	path = libs/libsploit
+	url = git@github.com:PSP-Arkfive/libsploit.git
+[submodule "libs/graphics"]
+	path = libs/graphics
+	url = git@github.com:PSP-Arkfive/graphics.git
+[submodule "libs/colordebugger"]
+	path = libs/colordebugger
+	url = git@github.com:PSP-Arkfive/colordebugger.git
