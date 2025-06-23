@@ -24,6 +24,7 @@
 #include "module2.h"
 
 extern ARKConfig* ark_config;
+extern void flushCache();
 
 // Interrupt Manager Patch
 SceModule2* patchInterruptMan(void)

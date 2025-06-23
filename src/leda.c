@@ -78,7 +78,7 @@ void LedaModulePatch(SceModule2 *mod)
 // patch leda
 void patchLedaPlugin(void* handler){
     
-    SceModule2* init = sceKernelFindModuleByName("sceInit");
+    SceModule2* init = (SceModule2*)sceKernelFindModuleByName("sceInit");
 
     // register handler
     KernelLoadModuleMs2_hook = handler;
@@ -97,11 +97,11 @@ void patchLedaPlugin(void* handler){
     _sw(NOP, text_addr + 0x1140);
 
     // patch init sceKernelLoadModuleMs2
-    KernelLoadModuleMs2_orig = sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x7BD53193);
+    KernelLoadModuleMs2_orig = (SceUID (*)())sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x7BD53193);
     hookImportByNID(init, "ModuleMgrForKernel", 0x7BD53193, sceKernelLoadModuleMs2_patched);
 
     // register handler for custom fixes to legacy games
-    leda_previous = sctrlHENSetStartModuleHandler( LedaModulePatch );
+    leda_previous = (int (*)(SceModule2 *))sctrlHENSetStartModuleHandler( (int (*)(SceModule2 *))LedaModulePatch );
 
     leda_running = 1; // disable checkexec in modman
     

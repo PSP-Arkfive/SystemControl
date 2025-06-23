@@ -39,12 +39,12 @@ static const u32 cpu_nid_list[] = {
 
 void SetSpeed(int cpu, int bus)
 {
-    scePowerSetClockFrequency_k = sctrlHENFindFunction("scePower_Service", "scePower", 0x737486F2); //scePowerSetClockFrequency
+    scePowerSetClockFrequency_k = (int (*)(int,  int,  int))sctrlHENFindFunction("scePower_Service", "scePower", 0x737486F2); //scePowerSetClockFrequency
     scePowerSetClockFrequency_k(cpu, cpu, bus);
 
     int apitype = sceKernelInitApitype();
     if(apitype ==  0x210 || apitype ==  0x220) {
-        hookImportByNID(sceKernelFindModuleByName("vsh_module"), "scePower", 0x469989AD, NULL);
+        hookImportByNID((SceModule2 *)sceKernelFindModuleByName("vsh_module"), "scePower", 0x469989AD, NULL);
     }
     else {
         MAKE_DUMMY_FUNCTION_RETURN_0((u32)scePowerSetClockFrequency_k);

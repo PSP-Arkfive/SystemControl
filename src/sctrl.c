@@ -38,6 +38,9 @@
 #include "imports.h"
 #include "sysmem.h"
 
+extern int readGameIdFromDisc();
+extern u32 resolveMissingNid(const char * libName, u32 nid);
+
 // Load Execute Module via Kernel Internal Function
 int (* _sceLoadExecVSHWithApitype)(int, const char*, struct SceKernelLoadExecVSHParam*, unsigned int) = NULL;
 int sctrlKernelLoadExecVSHWithApitype(int apitype, const char * file, struct SceKernelLoadExecVSHParam * param)
@@ -164,7 +167,7 @@ int sctrlKernelSetDevkitVersion(int version)
 }
 
 // Dword Poker (relative to module text_addr)
-int sctrlPatchModule(char * modname, unsigned int inst, unsigned int offset)
+int sctrlPatchModule(char * modname, u32 inst, u32 offset)
 {
     // Poke Result
     int result = 0;
@@ -196,7 +199,7 @@ int sctrlPatchModule(char * modname, unsigned int inst, unsigned int offset)
 }
 
 // Text Address Getter
-unsigned int sctrlModuleTextAddr(char * modname)
+u32 sctrlModuleTextAddr(char * modname)
 {
     // Result Value
     unsigned int text_addr = 0;
@@ -258,7 +261,7 @@ unsigned int sctrlKernelRand(void)
 }
 
 // Enable or Disable NID Resolver for Library
-int sctrlKernelSetNidResolver(char * libname, unsigned int enabled)
+int sctrlKernelSetNidResolver(char * libname, u32 enabled)
 {
     // Iterate Libraries
     for(int i = 0; i < nidTableSize; i++)
@@ -337,7 +340,7 @@ int sctrlKernelMsIsEf(){
 }
 
 // Return Text Address of init.prx
-unsigned int sctrlGetInitTextAddr(void)
+u32 sctrlGetInitTextAddr(void)
 {
     // Return logged sceInit Text Address
     return sceInitTextAddr;

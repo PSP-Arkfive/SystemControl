@@ -22,6 +22,10 @@
 #include "sysmem.h"
 
 
+extern void SetSpeed(int cpu, int bus);
+extern void patchLedaPlugin(void* handler);
+
+
 int sctrlHENSetMemory(u32 p2, u32 p9)
 {
     return 0;
@@ -119,7 +123,7 @@ void sctrlHENPatchSyscall(void * addr, void * newaddr)
 STMOD_HANDLER sctrlHENSetStartModuleHandler(STMOD_HANDLER new_handler)
 {
     // Get Previous Handler
-    STMOD_HANDLER on_module_start = g_module_start_handler;
+    STMOD_HANDLER on_module_start = (int (*)(SceModule2 *))g_module_start_handler;
     
     // Register Handler
     g_module_start_handler = (void *)(KERNELIFY(new_handler));
@@ -201,7 +205,7 @@ u32 sctrlHENGetInitControl()
 
 u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid)
 {
-    SceModule2 *mod = sceKernelFindModuleByName(szMod);
+    SceModule2 *mod = (SceModule2 *)sceKernelFindModuleByName(szMod);
     if(!mod) return 0;
 
     for(int i = 0; i < mod->stub_size;)
@@ -210,7 +214,7 @@ u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid)
 
         if(stub->libname && strcmp(stub->libname, szLib) == 0)
         {
-            u32 *table = stub->nidtable;
+            u32 *table = (u32 *)stub->nidtable;
 
             for(int j = 0; j < stub->stubcount; j++)
             {
@@ -331,7 +335,7 @@ int sctrlHENIsToolKit()
 
     if (ark_config->exec_mode == PSP_TOOL){
         int baryon_ver = 0;
-        int (*getBaryonVer)(void*) = sctrlHENFindFunction("sceSYSCON_Driver", "sceSyscon_driver", 0x7EC5A957);
+        int (*getBaryonVer)(void*) = (int (*)(void *))sctrlHENFindFunction("sceSYSCON_Driver", "sceSyscon_driver", 0x7EC5A957);
         if (getBaryonVer) getBaryonVer(&baryon_ver);
         if (baryon_ver == 0x00020601){
             ret = 2; // DevelopmentTool

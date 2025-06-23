@@ -68,7 +68,7 @@ void patchMediaSync(SceModule2* mod)
     }
 
     if (rebootex_config.boot_from_fw_version == FW_150) {
-        int (*sceClockgenAudioClkEnable)(void) = sctrlHENFindFunction("sceClockgen_Driver", "sceClockgen_driver", 0xA1D23B2C);
+        int (*sceClockgenAudioClkEnable)(void) = (int (*)(void))sctrlHENFindFunction("sceClockgen_Driver", "sceClockgen_driver", 0xA1D23B2C);
         sceClockgenAudioClkEnable();
     }
 }

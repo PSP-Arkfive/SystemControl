@@ -28,6 +28,9 @@
 #include "sysmem.h"
 #include "exception.h"
 #include "libs/graphics/graphics.h"
+#include "nidresolver.h"
+
+extern void uprotectExtraMemory();
 
 PSP_MODULE_INFO("SystemControl", 0x3007, 4, 0);
 

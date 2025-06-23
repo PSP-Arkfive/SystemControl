@@ -54,7 +54,7 @@ void backupRebootBuffer(void)
     
     // Copy ARK runtime Config
     if (IS_ARK_CONFIG(ARK_CONFIG))
-        memcpy(ark_config, ARK_CONFIG, sizeof(ARKConfig));
+        memcpy(ark_config, (const void *)ARK_CONFIG, sizeof(ARKConfig));
     
     // Flush Cache
     flushCache();
@@ -82,7 +82,7 @@ void restoreRebootBuffer(void)
     memcpy((void *)REBOOTEX_CONFIG, &rebootex_config, sizeof(RebootConfigARK));
 
     // Restore ARK Configuration
-    memcpy(ARK_CONFIG, ark_config, sizeof(ARKConfig));
+    memcpy((void *)ARK_CONFIG, ark_config, sizeof(ARKConfig));
 }
 
 // Reboot Buffer Loader

@@ -50,8 +50,8 @@ int readGameIdFromDisc(){
 }
 
 int readGameIdFromPBP(){
-    int n = 10;
-    int res = sctrlGetInitPARAM("DISC_ID", NULL, &n, rebootex_config.game_id);
+    u32 n = 10;
+    u32 res = sctrlGetInitPARAM("DISC_ID", NULL, &n, rebootex_config.game_id);
     if (res < 0) return 0;
     return 1;
 }
@@ -59,7 +59,7 @@ int readGameIdFromPBP(){
 int readGameIdFromISO(){
 
     int (*iso_read)(u32 offset, void *ptr, u32 data_len) =
-        sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB573209C);
+        (int (*)(u32,  void *, u32))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB573209C);
     if (!iso_read) return 0;
 
     int res = iso_read(16*2048+883, rebootex_config.game_id, sizeof(rebootex_config.game_id));

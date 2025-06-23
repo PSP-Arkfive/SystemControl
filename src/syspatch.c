@@ -35,9 +35,15 @@
 #include "rebootconfig.h"
 #include "sysmem.h"
 
+#include <loadexec_patch.h>
+
 extern u32 sctrlHENFakeDevkitVersion();
 extern int is_plugins_loading;
 extern SEConfig se_config;
+extern void patchController(SceModule2* mod);
+extern void patch_npsignup(SceModule2* mod);
+extern void patch_npsignin(SceModule2* mod);
+extern void patch_np(SceModule2* mod, u8 major, u8 minor);
 
 // Previous Module Start Handler
 STMOD_HANDLER previous = NULL;
@@ -203,7 +209,7 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
             0x2BE8DDBB, 0xE8CCC611, 0xCDDCFFB3, 0x48BB05D5, 0x22FB4177, 0xBC8DC92B, 0xE3D530AE
         };
         for (int i=0; i<NELEMS(nids); i++){
-            hookImportByNID(mod, "scePaf", nids[i], sctrlHENFindFunction("scePaf_Module", "scePaf", nids[i]));
+            hookImportByNID(mod, "scePaf", nids[i], (void *)sctrlHENFindFunction("scePaf_Module", "scePaf", nids[i]));
         }
         goto flush;
     }
@@ -221,17 +227,17 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
 
             if (se_config.umdseek || se_config.umdspeed){
                 se_config.iso_cache = 0;
-                void (*SetUmdDelay)(int, int) = sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB6522E93);
+                void (*SetUmdDelay)(int, int) = (void (*)(int,  int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB6522E93);
                 if (SetUmdDelay) SetUmdDelay(se_config.umdseek, se_config.umdspeed);
             }
 
             if (se_config.iso_cache){
-                int (*CacheInit)(int, int, int) = sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
+                int (*CacheInit)(int, int, int) = (int (*)(int,  int,  int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
                 if (CacheInit){
                     CacheInit(se_config.iso_cache_size, se_config.iso_cache_num, se_config.iso_cache_partition);
                 }
                 if (se_config.iso_cache == 2){
-                    int (*CacheSetPolicy)(int) = sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
+                    int (*CacheSetPolicy)(int) = (int (*)(int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
                     if (CacheSetPolicy){
                         CacheSetPolicy(CACHE_POLICY_RR);
                     }
@@ -274,5 +280,5 @@ exit:
 void syspatchInit(void)
 {
     // Register Module Start Handler
-    previous = sctrlHENSetStartModuleHandler(ARKSyspatchOnModuleStart);
+    previous = sctrlHENSetStartModuleHandler((int (*)(SceModule2 *))ARKSyspatchOnModuleStart);
 }

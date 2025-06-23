@@ -23,10 +23,14 @@
 #include <pspiofilemgr.h>
 #include <pspsysmem_kernel.h>
 #include <pspinit.h>
+#include <systemctrl.h>
 #include <stdio.h>
 #include <string.h>
 #include <kubridge.h>
 #include "imports.h"
+
+extern char *GetUmdFile(void);
+
 
 // Load Modules (without restrictions)
 SceUID kuKernelLoadModule(const char * path, int flags, SceKernelLMOption * option)
@@ -52,7 +56,7 @@ SceUID kuKernelLoadModuleWithApitype2(int apitype, const char *path, int flags, 
     k1 = pspSdkSetK1(0);
     
     SceUID (*KernelLoadModuleWithApitype2)(int apitype, const char *path, int flags, SceKernelLMOption *option) = NULL;
-    KernelLoadModuleWithApitype2 = sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x2B7FC10D);
+    KernelLoadModuleWithApitype2 = (SceUID (*)(int,  const char *, int,  SceKernelLMOption *))sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x2B7FC10D);
     
     if (KernelLoadModuleWithApitype2)
         ret = KernelLoadModuleWithApitype2(apitype, path, flags, option);
@@ -178,14 +182,14 @@ int kuKernelGetModel(void)
 }
 
 // Read Dword from Kernel
-unsigned int kuKernelPeekw(void * addr)
+u32 kuKernelPeekw(void * addr)
 {
     // Return Dword
     return _lw((unsigned int)addr);
 }
 
 // Write Dword into Kernel
-void kuKernelPokew(void * addr, unsigned int value)
+void kuKernelPokew(void * addr, u32 value)
 {
     // Write Dword
     _sw(value, (unsigned int)addr);

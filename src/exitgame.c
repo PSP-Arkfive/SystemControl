@@ -48,7 +48,7 @@ static int exitVsh(){
     // Refuse Operation in Dialog
     if(sceKernelFindModuleByName("sceDialogmain_Module") != NULL) return 0;
 
-    int (*setHoldMode)(int) = sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
+    int (*setHoldMode)(int) = (int (*)(int))sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
     if (setHoldMode) setHoldMode(0);
 
     ark_config->recovery = 0;
@@ -79,7 +79,7 @@ int exitLauncher()
     else if (ark_config->launcher[0]) strcat(path, ark_config->launcher);
     else strcat(path, VBOOT_PBP);
 
-    int (*setHoldMode)(int) = sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
+    int (*setHoldMode)(int) = (int (*)(int))sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
     if (setHoldMode) setHoldMode(0);
 
     SceIoStat stat; int res = sceIoGetstat(path, &stat);
@@ -298,8 +298,8 @@ void patchController(SceModule2* mod)
     CtrlReadBufferNegative = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x60B81F86);
 
     // Hook Gamepad Input
-    HIJACK_FUNCTION(CtrlPeekBufferPositive, peek_positive, CtrlPeekBufferPositive);
-    HIJACK_FUNCTION(CtrlPeekBufferNegative, peek_negative, CtrlPeekBufferNegative);
-    HIJACK_FUNCTION(CtrlReadBufferPositive, read_positive, CtrlReadBufferPositive);
-    HIJACK_FUNCTION(CtrlReadBufferNegative, read_negative, CtrlReadBufferNegative);
+    HIJACK_FUNCTION((u32)CtrlPeekBufferPositive, peek_positive, CtrlPeekBufferPositive);
+    HIJACK_FUNCTION((u32)CtrlPeekBufferNegative, peek_negative, CtrlPeekBufferNegative);
+    HIJACK_FUNCTION((u32)CtrlReadBufferPositive, read_positive, CtrlReadBufferPositive);
+    HIJACK_FUNCTION((u32)CtrlReadBufferNegative, read_negative, CtrlReadBufferNegative);
 }

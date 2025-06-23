@@ -37,6 +37,10 @@
 #include "graphics.h"
 #include "libs/colordebugger/colordebugger.h"
 
+extern int exitLauncher();
+extern void findGameId();
+extern void checkControllerInput();
+
 // init.prx Text Address
 unsigned int sceInitTextAddr = 0;
 

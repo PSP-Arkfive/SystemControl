@@ -20,6 +20,7 @@
 #include <pspmodulemgr.h>
 #include <pspiofilemgr.h>
 #include <ark.h>
+#include <systemctrl.h>
 #include <systemctrl_se.h>
 #include <systemctrl_private.h>
 #include "rebootex.h"
@@ -31,6 +32,8 @@
 
 extern ARKConfig* ark_config;
 extern SEConfig se_config;
+
+extern void lowerString(char* orig, char* ret, int strSize);
 
 #define MAX_PLUGINS 32
 #define MAX_PLUGIN_PATH 64
@@ -62,7 +65,7 @@ int isLoadingPlugins(){
     return is_plugins_loading;
 }
 
-static addPlugin(char* path){
+static void addPlugin(char* path){
     for (int i=0; i<plugins->count; i++){
         if (stricmp(plugins->paths[i], path) == 0)
             return; // plugin already added
@@ -71,7 +74,7 @@ static addPlugin(char* path){
         strcpy(plugins->paths[plugins->count++], path);
 }
 
-static removePlugin(char* path){
+static void removePlugin(char* path){
     for (int i=0; i<plugins->count; i++){
         if (stricmp(plugins->paths[i], path) == 0){
             if (--plugins->count > i){
@@ -504,15 +507,15 @@ static void settingsHandler(char* path, u8 enabled){
         se_config.umdregion = (enabled)?UMD_REGION_EUROPE:0;
     }
     else if (strncasecmp(path, "fakeregion_", 11) == 0){
-        int r = atoi(path+11);
+        int r = (int)strtol(path+11, NULL, 10);
         se_config.vshregion = (enabled)?r:0;
     }
     else if (strncasecmp(path, "umdseek_", 8) == 0){
-        int r = atoi(path+8);
+        int r = (int)strtol(path+8, NULL, 10);
         se_config.umdseek = (enabled)?r:0;
     }
     else if (strncasecmp(path, "umdspeed_", 9) == 0){
-        int r = atoi(path+9);
+        int r = (int)strtol(path+9, NULL, 10);
         se_config.umdspeed = (enabled)?r:0;
     }
     else if (strcasecmp(path, "hibblock") == 0){ // block hibernation
@@ -593,8 +596,8 @@ void loadSettings(){
     if (!se_config.force_high_memory){
         int apitype = sceKernelInitApitype();
         if (apitype == 0x141 || apitype == 0x152){
-            int paramsize=4;
-            int use_highmem = 0;
+            u32 paramsize=4;
+            u32 use_highmem = 0;
             if (sctrlGetInitPARAM("MEMSIZE", NULL, &paramsize, &use_highmem) >= 0 && use_highmem){
                 se_config.force_high_memory = 1;
             }

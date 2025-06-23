@@ -22,8 +22,11 @@
 #include <macros.h>
 #include <ark.h>
 #include <systemctrl_private.h>
+#include <systemctrl.h>
 #include "elf.h"
 #include "modulemanager.h"
+
+extern u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid);
 
 // Module Start Handler
 void (* g_module_start_handler)(SceModule2 *) = NULL;

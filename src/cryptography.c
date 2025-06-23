@@ -240,10 +240,10 @@ SceModule2* patchMemlmd(void)
             memlmd_unsigner = (void*)a; // inner function which unsigns a PRX module 
         }
         else if (data == 0x27BDFF80){
-            memlmdDecrypt = addr-8; // Backup Decrypt Function Pointer
+            memlmdDecrypt = (int (*)(unsigned char *, unsigned int,  unsigned int *, unsigned int))addr-8; // Backup Decrypt Function Pointer
         }
         else if (data == 0x2403FF31 && sceMemlmdInitializeScrambleKey==NULL){
-            sceMemlmdInitializeScrambleKey = addr-8;
+            sceMemlmdInitializeScrambleKey = (int (*)(u32,  void *))addr-8;
         }
     }
     // Flush Cache
@@ -261,7 +261,9 @@ void patchMesgLed(SceModule2 * mod)
     for (addr = mod->text_addr; addr<topaddr; addr+=4){
         u32 data = _lw(addr);
         if (data == 0x2CE30001){
-            mesgledDecrypt = addr; // Save Original Decrypt Function Pointer
+            mesgledDecrypt = (int (*)(unsigned int *, unsigned char *, unsigned int,  unsigned char *, unsigned int,  
+				unsigned int *, unsigned int,  unsigned char *, unsigned int,  unsigned int,  unsigned char *, 
+				unsigned char *))addr; // Save Original Decrypt Function Pointer
         }
         else if (data == JAL(mesgledDecrypt)){
             _sw(JAL(_mesgledDecrypt), addr);
