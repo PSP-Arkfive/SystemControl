@@ -369,7 +369,7 @@ void sctrlSetCustomStartModule(int (* func)(int modid, SceSize argsize, void * a
     customStartModule = func;
 }
 
-void* sctrlSetStartModuleExtra(int (*func)() )
+void* sctrlSetStartModuleExtra(int (* func)(int modid, SceSize argsize, void * argp, int * modstatus, SceKernelSMOption * opt))
 {
     void * ret = (void *)customStartModule;
     customStartModule = func;
