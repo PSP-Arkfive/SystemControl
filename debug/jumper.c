@@ -18,8 +18,9 @@
 #include <pspkernel.h>
 #include <pspthreadman_kernel.h>
 #include <systemctrl.h>
-#include <macros.h>
+#include <cfwmacros.h>
 #include <module2.h>
+#include <ark.h>
 
 #if DEBUG >= 2
 
@@ -255,7 +256,7 @@ void installJALTrace(unsigned int address)
         	_sw(JAL(jumper), address);
         	
         	// Flush Cache
-        	flushCache();
+        	sctrlFlushCache();
         	
         	// Increase Kernel Jumper Count
         	if(KERNEL_OKAY(address)) hook_count++;

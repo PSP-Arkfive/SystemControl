@@ -23,7 +23,7 @@ OBJS = \
 	src/sysmem.o \
 	src/lz4.o \
 	src/minilzo.o \
-    src/loadexec.o \
+	src/loadexec.o \
 	src/exitgame.o \
 	src/gameinfo.o \
 	src/plugin.o \
@@ -32,14 +32,15 @@ OBJS = \
 	src/cpuclock.o   \
 	src/msstor_cache.o \
 	src/threadman.o \
+	src/utility.o \
+	src/patches.o \
 	src/setlongjmp.o \
-	libs/libsploit/patches.o \
-	libs/ansi-c/lowerstring.o \
-	libs/ansi-c/strcasecmp.o \
+	external/src/lowerstring.o \
+	external/src/strcasecmp.o \
 	
 	
 all: $(TARGET).prx
-INCDIR = $(ARKROOT)/common $(ARKROOT)
+INCDIR = include external/include
 CFLAGS = -std=c99 -Os -G0 -Wall -fno-pic
 
 ifdef DISABLE_PSID_CHECK
@@ -61,14 +62,14 @@ PRX_EXPORTS = exports.exp
 USE_KERNEL_LIBC=1
 USE_KERNEL_LIBS=1
 
-LIBDIR = libs libs/libpspsemaphore
+LIBDIR = external/libs
 LDFLAGS =  -nostartfiles
-LIBS = -lpspsemaphore
+LIBS = 
 
 ifdef DEBUG
 CFLAGS += -DDEBUG=$(DEBUG)
 OBJS += debug/exception.o debug/exception_asm.o debug/printk.o debug/jumper.o
-LIBS += -lcolordebugger -lgraphics
+LIBS += -lcolordebugger -lscreenprinter
 else
 OBJS += debug/dummy.o
 endif

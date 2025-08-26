@@ -20,7 +20,7 @@
 #include <psputilsforkernel.h>
 #include <stdio.h>
 #include <string.h>
-#include <macros.h>
+#include <cfwmacros.h>
 #include <systemctrl.h>
 #include <systemctrl_private.h>
 #include <ark.h>
@@ -57,7 +57,7 @@ void patchMediaSync(SceModule2* mod)
         else if (data == 0x27A60014){ // MEDIASYNC_DISC_ID_CHECK
             _sw(NOP, addr+12);
             u32 a = addr+16;
-            do {a+=4;} while (_lw(a)&0xFFFF0000 != 0x14400000);
+            do {a+=4;} while ((_lw(a)&0xFFFF0000) != 0x14400000);
             _sw(NOP, a);
             patches--;
         }
@@ -68,7 +68,7 @@ void patchMediaSync(SceModule2* mod)
     }
 
     if (rebootex_config.boot_from_fw_version == FW_150) {
-        int (*sceClockgenAudioClkEnable)(void) = (int (*)(void))sctrlHENFindFunction("sceClockgen_Driver", "sceClockgen_driver", 0xA1D23B2C);
+        int (*sceClockgenAudioClkEnable)(void) = (void*)sctrlHENFindFunction("sceClockgen_Driver", "sceClockgen_driver", 0xA1D23B2C);
         sceClockgenAudioClkEnable();
     }
 }

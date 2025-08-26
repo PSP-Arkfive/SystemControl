@@ -15,12 +15,15 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
-#include <string.h>
+
 #include <rebootconfig.h>
 #include <systemctrl.h>
+#include <systemctrl_se.h>
+
 #include "imports.h"
 #include "rebootex.h"
 
@@ -54,10 +57,10 @@ void backupRebootBuffer(void)
     
     // Copy ARK runtime Config
     if (IS_ARK_CONFIG(ARK_CONFIG))
-        memcpy(ark_config, (const void *)ARK_CONFIG, sizeof(ARKConfig));
+        memcpy(ark_config, (void*)ARK_CONFIG, sizeof(ARKConfig));
     
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 }
 
 // Restore Reboot Buffer
@@ -82,7 +85,7 @@ void restoreRebootBuffer(void)
     memcpy((void *)REBOOTEX_CONFIG, &rebootex_config, sizeof(RebootConfigARK));
 
     // Restore ARK Configuration
-    memcpy((void *)ARK_CONFIG, ark_config, sizeof(ARKConfig));
+    memcpy((void*)ARK_CONFIG, ark_config, sizeof(ARKConfig));
 }
 
 // Reboot Buffer Loader

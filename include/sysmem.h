@@ -55,12 +55,7 @@ typedef struct SysMemPartition {
 
 // Patch System Memory Manager
 void patchSystemMemoryManager(void);
-
-// Patch Game ID Getter
-void patchGameInfoGetter(SceModule2 * mod);
-
-// Fixed Game Info Getter Function
-void * SysMemForKernel_EF29061C_Fixed(void);
+void uprotectExtraMemory();
 
 #endif
 

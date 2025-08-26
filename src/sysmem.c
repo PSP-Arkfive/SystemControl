@@ -15,13 +15,16 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
-#include <pspsdk.h>
+
 #include <string.h>
+#include <pspsdk.h>
+
 #include <ark.h>
 #include <systemctrl.h>
 #include <systemctrl_private.h>
+
 #include "sysmem.h"
-#include "functions.h"
+#include "patches.h"
 
 void uprotectExtraMemory()
 {
@@ -42,5 +45,5 @@ void patchSystemMemoryManager(void)
     for (i=0; i<sizeof(nids)/sizeof(u32); i++)
         _sh(0x1000, FindFirstBEQ(sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", nids[i])) + 2);
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 }

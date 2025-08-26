@@ -15,6 +15,9 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
@@ -23,14 +26,12 @@
 #include <pspiofilemgr.h>
 #include <pspsysmem_kernel.h>
 #include <pspinit.h>
-#include <systemctrl.h>
-#include <stdio.h>
-#include <string.h>
+#include <psploadcore.h>
+
 #include <kubridge.h>
+#include <systemctrl.h>
+#include <systemctrl_se.h>
 #include "imports.h"
-
-extern char *GetUmdFile(void);
-
 
 // Load Modules (without restrictions)
 SceUID kuKernelLoadModule(const char * path, int flags, SceKernelLMOption * option)
@@ -56,7 +57,7 @@ SceUID kuKernelLoadModuleWithApitype2(int apitype, const char *path, int flags, 
     k1 = pspSdkSetK1(0);
     
     SceUID (*KernelLoadModuleWithApitype2)(int apitype, const char *path, int flags, SceKernelLMOption *option) = NULL;
-    KernelLoadModuleWithApitype2 = (SceUID (*)(int,  const char *, int,  SceKernelLMOption *))sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x2B7FC10D);
+    KernelLoadModuleWithApitype2 = (void*)sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x2B7FC10D);
     
     if (KernelLoadModuleWithApitype2)
         ret = KernelLoadModuleWithApitype2(apitype, path, flags, option);
@@ -182,14 +183,14 @@ int kuKernelGetModel(void)
 }
 
 // Read Dword from Kernel
-u32 kuKernelPeekw(void * addr)
+unsigned int kuKernelPeekw(void * addr)
 {
     // Return Dword
     return _lw((unsigned int)addr);
 }
 
 // Write Dword into Kernel
-void kuKernelPokew(void * addr, u32 value)
+void kuKernelPokew(void * addr, unsigned int value)
 {
     // Write Dword
     _sw(value, (unsigned int)addr);
@@ -236,6 +237,25 @@ int kuKernelFindModuleByName(char *modname, SceModule2 *mod)
     }
 
     pmod = (SceModule2*) sceKernelFindModuleByName(modname);
+
+    if(pmod == NULL) {
+        return -2;
+    }
+
+    memcpy(mod, pmod, sizeof(*pmod));
+    
+    return 0;
+}
+
+int kuKernelFindModuleByAddress(void *addr, SceModule2 *mod)
+{
+    SceModule2 *pmod;
+
+    if(addr == NULL || mod == NULL) {
+        return -1;
+    }
+
+    pmod = (SceModule2*) sceKernelFindModuleByAddress((unsigned int)addr);
 
     if(pmod == NULL) {
         return -2;
@@ -337,12 +357,12 @@ int kuKernelCallExtendStack(void *func_addr, struct KernelCallArg *args, int sta
 
 void kuKernelGetUmdFile(char *umdfile, int size)
 {
-    strncpy(umdfile, GetUmdFile(), size);
+    strncpy(umdfile, sctrlSEGetUmdFile(), size);
 }
 
 void kuKernelIcacheInvalidateAll(void)
 {
     u32 k1 = pspSdkSetK1(0);
-    flushCache();
+    sctrlFlushCache();
     pspSdkSetK1(k1);
 }

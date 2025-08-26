@@ -19,17 +19,16 @@
 #include <pspkernel.h>
 #include <pspiofilemgr.h>
 #include <string.h>
-#include <macros.h>
+#include <cfwmacros.h>
 #include <ark.h>
-#include <systemctrl_private.h>
 #include <systemctrl.h>
+#include <systemctrl_se.h>
+#include <systemctrl_private.h>
 #include "elf.h"
 #include "modulemanager.h"
 
-extern u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid);
-
 // Module Start Handler
-void (* g_module_start_handler)(SceModule2 *) = NULL;
+int (* g_module_start_handler)(SceModule2 *) = NULL;
 
 // Partition Check Function
 int (* realPartitionCheck)(unsigned int *, unsigned int *) = NULL;
@@ -423,7 +422,7 @@ SceModule2* patchModuleManager()
     MAKE_JUMP(sctrlHENFindImport(mod->modname, "ThreadManForKernel", 0xF475845D), &sceKernelStartThread);
     
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 
     return mod;
     

@@ -1,5 +1,9 @@
+#include <pspsdk.h>
+
+#include <cfwmacros.h>
+#include <module2.h>
+
 #include "loadexec_patch.h"
-#include <functions.h>
 
 void patchLoadExec(SceModule2 *loadexec, u32 LoadReboot, u32 GetUserLevel,
                    int k1_patches) {

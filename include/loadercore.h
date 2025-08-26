@@ -19,7 +19,7 @@
 #define _LOADERCORE_H_
 
 // init.prx Text Address
-extern unsigned int sceInitTextAddr;
+extern u32 sceInitTextAddr;
 
 // init.prx Custom sceKernelStartModule Handler
 extern int (* customStartModule)(int modid, SceSize argsize, void * argp, int * modstatus, SceKernelSMOption * opt);

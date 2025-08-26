@@ -23,13 +23,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <systemctrl.h>
-#include <systemctrl_private.h>
 #include "imports.h"
 #include "exception.h"
 #include "graphics.h"
-#include "macros.h"
+#include "cfwmacros.h"
 
-extern ARKConfig* ark_config;
+extern int (* DisplaySetFrameBuf)(void*, int, int, int);
 
 // Exception Handler
 PspDebugErrorHandler curr_handler = NULL;
@@ -69,6 +68,7 @@ static const unsigned char regName[32][5] =
 static void ARKExceptionHandler(PspDebugRegBlock * regs)
 {
     initScreen(DisplaySetFrameBuf);
+    //if (DisplaySetFrameBuf == NULL) _sw(0x44000000, 0xBC800100);
     colorDebug(0xFF0000); // Blue Screen of Death
     PRTSTR("Exception caught!");
     PRTSTR1("Exception - %s", codeTxt[(regs->cause >> 2) & 31]);
@@ -80,6 +80,7 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
         PRTSTR8("%s:%p %s:%p %s:%p %s:%p", regName[i], regs->r[i],
                 regName[i+1], regs->r[i+1], regName[i+2], regs->r[i+2], regName[i+3], regs->r[i+3]);
     }
+    
     u32 epc = regs->epc;
     {
         SceModule2* mod = sceKernelFindModuleByAddress(epc);
@@ -101,7 +102,6 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
     int (*CtrlPeekBufferPositive)(SceCtrlData *, int) = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl", 0x3A622550);
     if (CtrlPeekBufferPositive){
         PRTSTR("Press cross to soft reset");
-        PRTSTR("Press circle to launch recovery");
         PRTSTR("Press square to hard reset");
         PRTSTR("Press triangle to shudown");
     }
@@ -114,11 +114,6 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
             CtrlPeekBufferPositive(&data, 1);
             if((data.Buttons & PSP_CTRL_CROSS) == PSP_CTRL_CROSS){
                 sctrlKernelExitVSH(NULL);
-            }
-            else if((data.Buttons & PSP_CTRL_CIRCLE) == PSP_CTRL_CIRCLE){
-                extern void exitLauncher();
-                ark_config->recovery = 1;
-                exitLauncher();
             }
             else if((data.Buttons & PSP_CTRL_SQUARE) == PSP_CTRL_SQUARE){
                 void (*ColdReset)(int) = sctrlHENFindFunction("scePower_Service", "scePower", 0x0442D852);
@@ -133,24 +128,15 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
 }
 
 // Register Exception Handler
-void registerExceptionHandler(PspDebugErrorHandler handler, PspDebugRegBlock * regs)
+int registerExceptionHandler(PspDebugErrorHandler handler, PspDebugRegBlock * regs)
 {
-    // Valid Arguments
-    if(handler != NULL && regs != NULL)
-    {
-        // Save Arguments
-        curr_handler = handler;
-        exception_regs = regs;
-    }
-    
-    // Register default screen Handler
-    else
-    {
-        // Save Arguments
-        curr_handler = &ARKExceptionHandler;
-        exception_regs = &cpuRegs;
-    }
+    int res = 0;
+
+    curr_handler = (handler)? handler : &ARKExceptionHandler;
+    exception_regs = (regs)? regs : &cpuRegs;
     
     // Register Exception Handler
-    sceKernelRegisterDefaultExceptionHandler((void *)_pspDebugExceptionHandler);
+    res = sceKernelRegisterDefaultExceptionHandler(_pspDebugExceptionHandler);
+
+    return res;
 }

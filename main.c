@@ -26,11 +26,12 @@
 #include "cryptography.h"
 #include "syspatch.h"
 #include "sysmem.h"
-#include "exception.h"
-#include "libs/graphics/graphics.h"
 #include "nidresolver.h"
+#include "exception.h"
 
-extern void uprotectExtraMemory();
+#ifdef DEBUG
+#include <screenprinter.h>
+#endif
 
 PSP_MODULE_INFO("SystemControl", 0x3007, 4, 0);
 
@@ -61,12 +62,12 @@ int module_start(SceSize args, void * argp)
     // Apply Module Patches
     patchSystemMemoryManager();
     SceModule2* loadcore = patchLoaderCore();
-    SceModule2* modman = patchModuleManager();
-    SceModule2* intrman = patchInterruptMan();
-    SceModule2* memlmd = patchMemlmd();
+    patchModuleManager();
+    patchInterruptMan();
+    patchMemlmd();
 
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 
     // setup NID resolver on loadercore
     setupNidResolver(loadcore);
@@ -85,7 +86,7 @@ int module_start(SceSize args, void * argp)
     uprotectExtraMemory();
 
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 
     // Return Success
     return 0;

@@ -21,7 +21,7 @@
 #include <module2.h>
 
 // Module Start Handler
-extern void (* g_module_start_handler)(SceModule2 *);
+extern int (* g_module_start_handler)(SceModule2 *);
 
 // Internal Module Manager Apitype Field
 extern int * kernel_init_apitype;

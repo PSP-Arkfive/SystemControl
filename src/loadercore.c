@@ -20,12 +20,14 @@
 #include <psputilsforkernel.h>
 #include <stdio.h>
 #include <string.h>
-#include <macros.h>
+
+#include <ark.h>
+#include <cfwmacros.h>
 #include <module2.h>
 #include <systemctrl.h>
+#include <systemctrl_se.h>
 #include <systemctrl_private.h>
-#include <ark.h>
-#include <functions.h>
+
 #include "imports.h"
 #include "modulemanager.h"
 #include "nidresolver.h"
@@ -34,15 +36,14 @@
 #include "loadercore.h"
 #include "cryptography.h"
 #include "rebootex.h"
-#include "graphics.h"
-#include "libs/colordebugger/colordebugger.h"
+#include "gameinfo.h"
+#include "exitgame.h"
+#include "patches.h"
 
-extern int exitLauncher();
-extern void findGameId();
-extern void checkControllerInput();
+extern SEConfig se_config;
 
 // init.prx Text Address
-unsigned int sceInitTextAddr = 0;
+u32 sceInitTextAddr = 0;
 
 // Plugin Loader Status
 int pluginLoaded = 0;
@@ -222,25 +223,44 @@ static void checkArkPath(){
 // Init Start Module Hook
 int InitKernelStartModule(int modid, SceSize argsize, void * argp, int * modstatus, SceKernelSMOption * opt)
 {
-    char modname[32];
+    char modname[28]; memset(modname, 0, sizeof(modname));
     SceModule2* mod = (SceModule2*) sceKernelFindModuleByUID(modid);
     strncpy(modname, mod->modname, sizeof(modname));
 
     int result = -1;
+    u32* vshmain_args = NULL;
+
+    // VSH replacement
+    if (strcmp(modname, "vsh_module") == 0){
+        // system in recovery or launcher mode
+        if (ark_config->recovery || ark_config->launcher[0] || se_config.launcher_mode){
+            int (*LoadExecForKernel_AA2029EC)() = (int(*)())sctrlHENFindFunction("sceLoadExec", "LoadExecForKernel", 0xAA2029EC);
+            if (LoadExecForKernel_AA2029EC) LoadExecForKernel_AA2029EC();
+            sctrlArkExitLauncher(); // reboot VSH into custom menu
+            MAKE_DUMMY_FUNCTION_RETURN_0(mod->entry_addr);
+        }
+        // skip bootup animation
+        if (se_config.skiplogos == 1 || se_config.skiplogos == 3) {
+            vshmain_args = oe_malloc(1024);
+            memset(vshmain_args, 0, 1024);
+    
+            if (argp != NULL && argsize != 0 ) {
+                memcpy( vshmain_args , argp ,  argsize);
+            }
+    
+            vshmain_args[0] = 1024;
+            vshmain_args[1] = 0x20;
+            vshmain_args[16] = 1;
+            argp = vshmain_args;
+            argsize = 1024;
+        }
+    }
 
     // Custom Handler registered
     if(customStartModule != NULL)
     {
         // Forward to Handler
         result = customStartModule(modid, argsize, argp, modstatus, opt);
-    }
-    
-    // VSH replacement
-    if (strcmp(modname, "vsh_module") == 0){
-        if (ark_config->recovery || ark_config->launcher[0]){ // system in recovery or launcher mode
-            exitLauncher(); // reboot VSH into custom menu
-            MAKE_DUMMY_FUNCTION_RETURN_0(mod->entry_addr);
-        }
     }
 
     // load settings before impose module
@@ -270,6 +290,9 @@ int InitKernelStartModule(int modid, SceSize argsize, void * argp, int * modstat
     
     // start module
     if (result < 0) result = sceKernelStartModule(modid, argsize, argp, modstatus, opt);
+
+    // cleanup
+    if (vshmain_args) oe_free(vshmain_args);
 
     return result;
 }
@@ -324,7 +347,7 @@ SceModule2* patchLoaderCore(void)
     u32 ref = findRefInGlobals("LoadCoreForKernel", checkExec, checkExec);
     _sw((unsigned int)KernelCheckExecFile, ref);
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 
     // start the dynamic patching
     for (u32 addr = start_addr; addr<topaddr; addr+=4){
@@ -356,7 +379,7 @@ SceModule2* patchLoaderCore(void)
         }
     }
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
     
     // Patch Relocation Type 7 to 0 (this makes more homebrews load)
     {
@@ -366,7 +389,7 @@ SceModule2* patchLoaderCore(void)
     }
     
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
     
     // Hook Executable Checks
     for (u32 addr=start_addr; addr<topaddr; addr+=4){
@@ -377,7 +400,7 @@ SceModule2* patchLoaderCore(void)
     }
 
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
 
     return mod;
 }

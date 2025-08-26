@@ -16,27 +16,29 @@
  */
 
 #include <string.h>
+#include <strings.h>
+#include <stdlib.h>
 #include <pspinit.h>
 #include <pspmodulemgr.h>
 #include <pspiofilemgr.h>
+
 #include <ark.h>
 #include <systemctrl.h>
 #include <systemctrl_se.h>
 #include <systemctrl_private.h>
+
 #include "rebootex.h"
 #include "plugin.h"
-#include "libs/graphics/graphics.h"
 
 #define LINE_BUFFER_SIZE 1024
 #define LINE_TOKEN_DELIMITER ','
 
 extern ARKConfig* ark_config;
 extern SEConfig se_config;
+extern int lowerString(char*, char*, int);
 
-extern void lowerString(char* orig, char* ret, int strSize);
-
-#define MAX_PLUGINS 32
-#define MAX_PLUGIN_PATH 64
+#define MAX_PLUGINS 64
+#define MAX_PLUGIN_PATH 128
 
 typedef struct{
     int count;
@@ -65,18 +67,22 @@ int isLoadingPlugins(){
     return is_plugins_loading;
 }
 
-static void addPlugin(char* path){
+static void addPlugin(const char* path){
     for (int i=0; i<plugins->count; i++){
-        if (stricmp(plugins->paths[i], path) == 0)
+        const char* cmp1 = strchr(plugins->paths[i], ':');
+        const char* cmp2 = strchr(path, ':');
+        if (!cmp1) cmp1 = plugins->paths[i]; 
+        if (!cmp2) cmp2 = path;
+        if (strcasecmp(cmp1, cmp2) == 0)
             return; // plugin already added
     }
     if (plugins->count < MAX_PLUGINS)
         strcpy(plugins->paths[plugins->count++], path);
 }
 
-static void removePlugin(char* path){
+static void removePlugin(const char* path){
     for (int i=0; i<plugins->count; i++){
-        if (stricmp(plugins->paths[i], path) == 0){
+        if (strcasecmp(plugins->paths[i], path) == 0){
             if (--plugins->count > i){
                 strcpy(plugins->paths[i], plugins->paths[plugins->count]);
             }
@@ -90,16 +96,10 @@ static void startPlugins()
 {
     for (int i=0; i<plugins->count; i++){
         int res = 0;
-        char path[MAX_PLUGIN_PATH];
-        strcpy(path, plugins->paths[i]);
+        char* path = plugins->paths[i];
         // Load Module
         int uid = sceKernelLoadModule(path, 0, NULL);
-        if (uid<0){ // try in ARK path
-            strcpy(path, ark_config->arkpath);
-            strcat(path, plugins->paths[i]);
-            uid = sceKernelLoadModule(path, 0, NULL);
-        }
-        if (uid > 0){
+        if (uid >= 0){
             // Call handler
             if (plugin_handler){
                 res = plugin_handler(path, uid);
@@ -186,8 +186,6 @@ static int matchingRunlevel(char * runlevel)
     
     lowerString(runlevel, runlevel, strlen(runlevel)+1);
 
-    int ret = 0;
-
     if (strcasecmp(runlevel, "all") == 0 || strcasecmp(runlevel, "always") == 0) return 1; // always on
 
     if (strchr(runlevel, '/')){
@@ -229,8 +227,8 @@ static int matchingRunlevel(char * runlevel)
 static int booleanOn(char * text)
 {
     // Different Variations of "true"
-    if(stricmp(text, "true") == 0 || stricmp(text, "on") == 0 ||
-        strcmp(text, "1") == 0 || stricmp(text, "enabled") == 0)
+    if (strcasecmp(text, "true") == 0 || strcasecmp(text, "on") == 0 ||
+        strcmp(text, "1") == 0 || strcasecmp(text, "enabled") == 0)
             return 1;
     
     // Default to False
@@ -271,65 +269,37 @@ char * strtrim(char * text)
     return text;
 }
 
-// Read Line from File Descriptor
-static char * readLine(int fd, char * buf, unsigned int buflen)
+int readLine(char* source, char *str)
 {
-    // Valid Arguments
-    if(fd >= 0 && buf != NULL && buflen > 0)
+    u8 ch = 0;
+    int n = 0;
+    int i = 0;
+    while(1)
     {
-        // Clean Memory
-        memset(buf, 0, buflen);
-        
-        // Buffer Position
-        unsigned int pos = 0;
-        
-        // Read Text
-        while(pos < buflen - 1 && sceIoRead(fd, buf + pos, 1) == 1)
-        {
-            // Carriage Return (Windows)
-            if(buf[pos] == '\r')
-            {
-                // Next Symbol
-                char c = 0;
-                
-                // Read Next Symbol (to prevent double tapping)
-                if(sceIoRead(fd, &c, 1) == 1)
-                {
-                    // Newline
-                    if(c == '\n') break;
-                    
-                    // Rewind File
-                    sceIoLseek32(fd, -1, PSP_SEEK_CUR);
-                }
-                
-                // Handle as Newline
-                break;
-            }
-            
-            // Newline
-            if(buf[pos] == '\n') break;
-            
-            // Move Position
-            pos++;
+        if( (ch = source[i]) == 0){
+            *str = 0;
+            return n;
         }
-        
-        // End of File
-        if(pos == 0 && buf[pos] == 0) return NULL;
-        
-        // Remove \r\n
-        if(buf[pos] == '\r' || buf[pos] == '\n') buf[pos] = 0;
-        
-        // Return Line Buffer
-        return buf;
+        n++; i++;
+        if(ch < 0x20)
+        {
+            *str = 0;
+            return n;
+        }
+        else
+        {
+            *str++ = ch;
+        }
     }
-    
-    // Invalid Arguments
-    return NULL;
 }
 
 // Parse and Process Line
-static void processLine(char * line, void (*enabler)(char*), void (*disabler)(char*))
-{
+static void processLine(
+    const char* parent,
+    char* line,
+    void (*enabler)(const char*),
+    void (*disabler)(const char*)
+){
     // Skip Comment Lines
     if(!enabler || line == NULL || strncmp(line, "//", 2) == 0 || line[0] == ';' || line[0] == '#')
         return;
@@ -383,31 +353,59 @@ static void processLine(char * line, void (*enabler)(char*), void (*disabler)(ch
     runlevel = strtrim(runlevel);
     path = strtrim(path);
     enabled = strtrim(enabled);
-    
+
     // Matching Plugin Runlevel
     if(matchingRunlevel(runlevel))
     {
+        char full_path[MAX_PLUGIN_PATH];
+        if (parent && strchr(path, ':') == NULL){ // relative path
+            strcpy(full_path, parent);
+            strcat(full_path, path);
+        }
+        else{ // already full path
+            strcpy(full_path, path);
+        }
         // Enabled Plugin
         if(booleanOn(enabled))
         {
             // Start Plugin
-            enabler(path);
+            enabler(full_path);
         }
         else{
-            if (disabler) disabler(path);
+            if (disabler) disabler(full_path);
         }
     }
 }
 
 // Load Plugins
-static int ProcessConfigFile(char* path, void (*enabler)(char*), void (*disabler)(char*))
-{
+static int ProcessConfigFile(
+    const char* parent,
+    const char* path,
+    void (*enabler)(const char*),
+    void (*disabler)(const char*)
+){
 
     int fd = sceIoOpen(path, PSP_O_RDONLY, 0777);
     
     // Opened Plugin Config
     if(fd >= 0)
     {
+
+        // allocate buffer in user ram and read entire file
+        int fsize = sceIoLseek(fd, 0, PSP_SEEK_END);
+        sceIoLseek(fd, 0, PSP_SEEK_SET);
+
+        SceUID memid = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_USER, "", PSP_SMEM_Low, fsize+1, NULL);
+        u8* buf = sceKernelGetBlockHeadAddr(memid);
+        if (buf == NULL){
+            sceIoClose(fd);
+            return -1;
+        }
+
+        sceIoRead(fd, buf, fsize);
+        sceIoClose(fd);
+        buf[fsize] = 0;
+
         // Allocate Line Buffer
         char * line = (char *)oe_malloc(LINE_BUFFER_SIZE);
         
@@ -415,25 +413,28 @@ static int ProcessConfigFile(char* path, void (*enabler)(char*), void (*disabler
         if(line != NULL)
         {
             // Read Lines
-            while(readLine(fd, line, LINE_BUFFER_SIZE) != NULL)
+            int nread = 0;
+            while ((nread=readLine((char*)buf, line)) > 0)
             {
+                buf += nread;
                 if (line[0] == 0) continue; // empty line
                 // Process Line
-                processLine(strtrim(line), enabler, disabler);
+                processLine(parent, strtrim(line), enabler, disabler);
             }
             
             // Free Buffer
             oe_free(line);
         }
+
+        sceKernelFreePartitionMemory(memid);
         
         // Close Plugin Config
-        sceIoClose(fd);
         return 0;
     }
     return -1;
 }
 
-static void settingsHandler(char* path, u8 enabled){
+static void settingsHandler(const char* path, u8 enabled){
     int apitype = sceKernelInitApitype();
     if (strcasecmp(path, "overclock") == 0){ // set CPU speed to max
         if (enabled)
@@ -461,7 +462,7 @@ static void settingsHandler(char* path, u8 enabled){
         se_config.usbcharge = enabled;
     }
     else if (strcasecmp(path, "highmem") == 0){ // enable high memory
-        if ( (apitype == 0x120 || (apitype >= 0x123 && apitype <= 0x126)) && sceKernelFindModuleByName("sceUmdCache_driver") != NULL){
+        if (sceKernelFindModuleByName("sceUmdCache_driver") != NULL){
             // don't allow high memory in UMD when cache is enabled
             return;
         }
@@ -471,8 +472,7 @@ static void settingsHandler(char* path, u8 enabled){
         se_config.msspeed = enabled; // enable ms cache for speedup
     }
     else if (strcasecmp(path, "disablepause") == 0){ // disable pause game feature on psp go
-        if (apitype != 0x144 && apitype != 0x155 && apitype !=  0x210 && apitype !=  0x220) // prevent in pops and vsh
-            se_config.disable_pause = enabled;
+        se_config.disable_pause = enabled;
     }
     else if (strcasecmp(path, "launcher") == 0){ // replace XMB with custom launcher
         se_config.launcher_mode = enabled;
@@ -497,25 +497,28 @@ static void settingsHandler(char* path, u8 enabled){
     else if (strcasecmp(path, "noanalog") == 0){
         se_config.noanalog = enabled;
     }
-    else if (strcasecmp(path, "region_jp") == 0){
-        se_config.umdregion = (enabled)?UMD_REGION_JAPAN:0;
-    }
-    else if (strcasecmp(path, "region_us") == 0){
-        se_config.umdregion = (enabled)?UMD_REGION_AMERICA:0;
-    }
-    else if (strcasecmp(path, "region_eu") == 0){
-        se_config.umdregion = (enabled)?UMD_REGION_EUROPE:0;
+    else if (strncasecmp(path, "region_", 7) == 0){
+        char* c = strchr(path, '_')+1;
+        if (strcasecmp(c, "jp") == 0){
+            se_config.umdregion = (enabled)?UMD_REGION_JAPAN:0;
+        }
+        else if (strcasecmp(c, "us") == 0){
+            se_config.umdregion = (enabled)?UMD_REGION_AMERICA:0;
+        }
+        else if (strcasecmp(c, "eu") == 0){
+            se_config.umdregion = (enabled)?UMD_REGION_EUROPE:0;
+        }
     }
     else if (strncasecmp(path, "fakeregion_", 11) == 0){
-        int r = (int)strtol(path+11, NULL, 10);
+        unsigned long r = strtoul(path+11, NULL, 10);
         se_config.vshregion = (enabled)?r:0;
     }
     else if (strncasecmp(path, "umdseek_", 8) == 0){
-        int r = (int)strtol(path+8, NULL, 10);
+        unsigned long r = strtoul(path+8, NULL, 10);
         se_config.umdseek = (enabled)?r:0;
     }
     else if (strncasecmp(path, "umdspeed_", 9) == 0){
-        int r = (int)strtol(path+9, NULL, 10);
+        unsigned long r = strtoul(path+9, NULL, 10);
         se_config.umdspeed = (enabled)?r:0;
     }
     else if (strcasecmp(path, "hibblock") == 0){ // block hibernation
@@ -548,11 +551,11 @@ static void settingsHandler(char* path, u8 enabled){
     }
 }
 
-static void settingsEnabler(char* path){
+static void settingsEnabler(const char* path){
     settingsHandler(path, 1);
 }
 
-static void settingsDisabler(char* path){
+static void settingsDisabler(const char* path){
     settingsHandler(path, 0);
 }
 
@@ -567,13 +570,13 @@ void LoadPlugins(){
     char path[ARK_PATH_SIZE];
     strcpy(path, ark_config->arkpath);
     strcat(path, PLUGINS_FILE);
-    ProcessConfigFile(path, &addPlugin, &removePlugin);
+    ProcessConfigFile(ark_config->arkpath, path, addPlugin, removePlugin);
     // Open Plugin Config from SEPLUGINS
-    ProcessConfigFile(PLUGINS_PATH, addPlugin, removePlugin);
+    ProcessConfigFile(SEPLUGINS_MS0, PLUGINS_PATH, addPlugin, removePlugin);
     // On PSP Go (only if ms0 isn't already redirected to ef0)
-    if (!sctrlKernelMsIsEf()) ProcessConfigFile(PLUGINS_PATH_GO, addPlugin, removePlugin);
+    ProcessConfigFile(SEPLUGINS_EF0, PLUGINS_PATH_GO, addPlugin, removePlugin);
     // Flash0 plugins
-    ProcessConfigFile(PLUGINS_PATH_FLASH, addPlugin, removePlugin);
+    ProcessConfigFile(FLASH0_PATH, PLUGINS_PATH_FLASH, addPlugin, removePlugin);
     // start all loaded plugins
     startPlugins();
     // free resources
@@ -589,42 +592,62 @@ void loadSettings(){
     char path[ARK_PATH_SIZE];
     strcpy(path, ark_config->arkpath);
     strcat(path, ARK_SETTINGS);
-    if (ProcessConfigFile(path, settingsEnabler, settingsDisabler) < 0) // try external settings
-        ProcessConfigFile(ARK_SETTINGS_FLASH, settingsEnabler, settingsDisabler); // retry flash1 settings
+    if (ProcessConfigFile(NULL, path, settingsEnabler, settingsDisabler) < 0) // try external settings
+        ProcessConfigFile(NULL, ARK_SETTINGS_FLASH, settingsEnabler, settingsDisabler); // retry flash1 settings
     se_config.magic = ARK_CONFIG_MAGIC;
 
-    if (!se_config.force_high_memory){
-        int apitype = sceKernelInitApitype();
-        if (apitype == 0x141 || apitype == 0x152){
-            u32 paramsize=4;
-            u32 use_highmem = 0;
-            if (sctrlGetInitPARAM("MEMSIZE", NULL, &paramsize, &use_highmem) >= 0 && use_highmem){
-                se_config.force_high_memory = 1;
-            }
+    int apitype = sceKernelInitApitype();
+    if (apitype == 0x141 || apitype == 0x152){
+        u32 paramsize=4;
+        int use_highmem = 0;
+        if (sctrlGetInitPARAM("MEMSIZE", NULL, &paramsize, &use_highmem) >= 0 && use_highmem){
+            se_config.force_high_memory = 2;
         }
     }
+
+    if (se_config.force_high_memory){
+        se_config.disable_pause = 1; // unless we figure out how to fix this
+    }
+}
+
+static int needs_devicename_patch(SceModule2* mod){
+    for (int i=0; i<mod->nsegment; ++i) {
+        u32 end = mod->segmentaddr[i] + mod->segmentsize[i];
+        for(u32 addr = mod->segmentaddr[i]; addr < end; addr ++) {
+        	char *str = (char*)addr;
+        	if (0 == strncmp(str, "ef0", 3)) {
+        		return 0;
+        	} else if (0 == strncmp(str, "fatef", 5)) {
+        		return 0;
+        	}
+        }
+    }
+    
+    u32 start = mod->text_addr+mod->text_size;
+    u32 end = start + mod->data_size;
+    for (u32 addr=start; addr<end; addr++){
+        char *str = (char*)addr;
+        if (0 == strncmp(str, "ef0", 3)) {
+        	return 0;
+        } else if (0 == strncmp(str, "fatef", 5)) {
+        	return 0;
+        }
+    }
+    return 1;
 }
 
 static void patch_devicename(SceUID modid)
 {
-    SceModule2 *mod;
-    int i;
+    SceModule2* mod = (SceModule2*)sceKernelFindModuleByUID(modid);
 
-    mod = (SceModule2*)sceKernelFindModuleByUID(modid);
-
-    if(mod == NULL) {
+    if(mod == NULL || !needs_devicename_patch(mod)) {
         return;
     }
 
-    for(i=0; i<mod->nsegment; ++i) {
-        u32 addr;
-        u32 end;
-
-        end = mod->segmentaddr[i] + mod->segmentsize[i];
-
-        for(addr = mod->segmentaddr[i]; addr < end; addr ++) {
+    for(int i=0; i<mod->nsegment; ++i) {
+        u32 end = mod->segmentaddr[i] + mod->segmentsize[i];
+        for(u32 addr = mod->segmentaddr[i]; addr < end; addr ++) {
         	char *str = (char*)addr;
-
         	if (0 == strncmp(str, "ms0", 3)) {
         		str[0] = 'e';
         		str[1] = 'f';
@@ -648,7 +671,7 @@ static void patch_devicename(SceUID modid)
         }
     }
 
-    flushCache();
+    sctrlFlushCache();
 }
 
 static int ef0PluginHandler(const char* path, int modid){

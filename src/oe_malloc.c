@@ -21,14 +21,39 @@
 #include <malloc.h>
 #include "imports.h"
 
+void* generic_malloc(int size, int partition){
+    int uid = sceKernelAllocPartitionMemory(partition, "", PSP_SMEM_High, size+sizeof(int), NULL);
+    int* ptr = sceKernelGetBlockHeadAddr(uid);
+    if (ptr){
+        ptr[0] = uid;
+        return &(ptr[1]);
+    }
+    return NULL;
+}
+
 void* oe_malloc(size_t size){
-    SceUID uid = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_KERNEL, "", PSP_SMEM_High, size+sizeof(SceUID), NULL);
-    SceUID* ptr = sceKernelGetBlockHeadAddr(uid);
-    ptr[0] = uid;
-    return &(ptr[1]);
+    return generic_malloc(size, PSP_MEMORY_PARTITION_KERNEL);
 }
 
 void oe_free(void* ptr){
-    SceUID uid = ((SceUID*)ptr)[-1];
-    sceKernelFreePartitionMemory(uid);
+    if (ptr){
+        SceUID uid = ((SceUID*)ptr)[-1];
+        sceKernelFreePartitionMemory(uid);
+    }
+}
+
+void* user_malloc(size_t size){
+    return generic_malloc(size, PSP_MEMORY_PARTITION_USER);
+}
+
+void* user_memalign(unsigned int align, unsigned int size){
+    int uid = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_USER, "", PSP_SMEM_High, size+align+sizeof(int), NULL);
+    int* ptr = sceKernelGetBlockHeadAddr(uid);
+    if (ptr){
+        ptr = (void*)((u32)ptr + sizeof(int));
+        ptr = (void*)(((u32)ptr & (~(align-1))) + align); // align
+        ptr[-1] = uid;
+        return ptr;
+    }
+    return NULL;
 }

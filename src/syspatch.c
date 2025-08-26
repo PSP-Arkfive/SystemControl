@@ -15,17 +15,18 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
-#include <systemctrl.h>
-#include <systemctrl_private.h>
+
+#include <cfwmacros.h>
 #include <module2.h>
-#include <stdio.h>
-#include <string.h>
-#include <macros.h>
-#include <graphics.h>
-#include "libs/colordebugger/colordebugger.h"
+#include <systemctrl.h>
+#include <systemctrl_se.h>
+#include <systemctrl_private.h>
+
 #include "imports.h"
 #include "modulemanager.h"
 #include "cryptography.h"
@@ -34,21 +35,22 @@
 #include "rebootex.h"
 #include "rebootconfig.h"
 #include "sysmem.h"
-
-#include <loadexec_patch.h>
+#include "psnfix.h"
+#include "patches.h"
+#include "loadexec_patch.h"
+#include "gameinfo.h"
+#include "exitgame.h"
 
 extern u32 sctrlHENFakeDevkitVersion();
 extern int is_plugins_loading;
 extern SEConfig se_config;
-extern void patchController(SceModule2* mod);
-extern void patch_npsignup(SceModule2* mod);
-extern void patch_npsignin(SceModule2* mod);
-extern void patch_np(SceModule2* mod, u8 major, u8 minor);
 
 // Previous Module Start Handler
 STMOD_HANDLER previous = NULL;
 
 #ifdef DEBUG
+#include <screenprinter.h>
+#include <colordebugger.h>
 // for screen debugging
 int (* DisplaySetFrameBuf)(void*, int, int, int) = NULL;
 #endif
@@ -97,7 +99,7 @@ void patch_qaflags(){
 }
 
 // Module Start Handler
-static void ARKSyspatchOnModuleStart(SceModule2 * mod)
+static int ARKSyspatchOnModuleStart(SceModule2 * mod)
 {
 
     // System fully booted Status
@@ -107,13 +109,13 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
 
     // Fix 6.60 plugins on 6.61
     if (is_plugins_loading){
-        hookImportByNID(mod, "SysMemForKernel", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
-        hookImportByNID(mod, "SysMemUserForUser", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
+        sctrlHookImportByNID(mod, "SysMemForKernel", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
+        sctrlHookImportByNID(mod, "SysMemUserForUser", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
     }
     
     #ifdef DEBUG
     printk("syspatch: %s(0x%04X)\r\n", mod->modname, sceKernelInitApitype());
-    hookImportByNID(mod, "KDebugForKernel", 0x84F370BC, printk);
+    sctrlHookImportByNID(mod, "KDebugForKernel", 0x84F370BC, printk);
 
     if (sceKernelFindModuleByName("vsh_module") == NULL){
         initScreen(DisplaySetFrameBuf);
@@ -155,6 +157,13 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
         HIJACK_FUNCTION(_KernelExitVSH, sctrlKernelExitVSH, _sceKernelExitVSH);
         goto flush;
     }
+
+    if (strcmp(mod->modname, "sceImpose_Driver") == 0){
+        // Handle extra ram setting
+        if (se_config.force_high_memory){
+            sctrlHENApplyMemory(MAX_HIGH_MEMSIZE);
+        }
+    }
     
     // Media Sync about to start...
     if(strcmp(mod->modname, "sceMediaSync") == 0)
@@ -176,7 +185,7 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
 
     // unlocks mp3 variable bitrate and qwerty osk on old games/homebrew
     if (strcmp(mod->modname, "sceMp3_Library") == 0 || strcmp(mod->modname, "sceVshOSK_Module") == 0){
-        hookImportByNID(mod, "SysMemUserForUser", 0xFC114573, &sctrlHENFakeDevkitVersion);
+        sctrlHookImportByNID(mod, "SysMemUserForUser", 0xFC114573, &sctrlHENFakeDevkitVersion);
         goto flush;
     }
 
@@ -197,20 +206,9 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
 
     if (strcmp(mod->modname, "popsloader") == 0 || strcmp(mod->modname, "popscore") == 0){
         // fix for 6.60 check on 6.61
-        hookImportByNID(mod, "SysMemForKernel", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
+        sctrlHookImportByNID(mod, "SysMemForKernel", 0x3FC9AE6A, &sctrlHENFakeDevkitVersion);
         // fix to prevent ME detection
-        hookImportByNID(mod, "SystemCtrlForKernel", 0x159AF5CC, &fakeFindFunction);
-        goto flush;
-    }
-
-    if (strcmp(mod->modname, "DayViewer_User") == 0){
-        // fix scePaf imports in DayViewer
-        static u32 nids[] = {
-            0x2BE8DDBB, 0xE8CCC611, 0xCDDCFFB3, 0x48BB05D5, 0x22FB4177, 0xBC8DC92B, 0xE3D530AE
-        };
-        for (int i=0; i<NELEMS(nids); i++){
-            hookImportByNID(mod, "scePaf", nids[i], (void *)sctrlHENFindFunction("scePaf_Module", "scePaf", nids[i]));
-        }
+        sctrlHookImportByNID(mod, "SystemCtrlForKernel", 0x159AF5CC, &fakeFindFunction);
         goto flush;
     }
 
@@ -221,30 +219,41 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
         if(isSystemBooted())
         {
 
+            // extend utility modules
+            extern void extendUtilityModules();
+            extendUtilityModules();
+
+            // patch QA flags settings
             if (se_config.qaflags){
                 patch_qaflags();
             }
 
+            // handle UMD seek and UMD speed settings
             if (se_config.umdseek || se_config.umdspeed){
                 se_config.iso_cache = 0;
-                void (*SetUmdDelay)(int, int) = (void (*)(int,  int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB6522E93);
+                void (*SetUmdDelay)(int, int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB6522E93);
                 if (SetUmdDelay) SetUmdDelay(se_config.umdseek, se_config.umdspeed);
             }
 
+            // handle inferno cache settings
             if (se_config.iso_cache){
-                int (*CacheInit)(int, int, int) = (int (*)(int,  int,  int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
+                extern int p2_size;
+                if (p2_size>24 || se_config.force_high_memory){
+                    se_config.iso_cache_partition = 2;
+                }
+                int (*CacheInit)(int, int, int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
                 if (CacheInit){
                     CacheInit(se_config.iso_cache_size, se_config.iso_cache_num, se_config.iso_cache_partition);
                 }
                 if (se_config.iso_cache == 2){
-                    int (*CacheSetPolicy)(int) = (int (*)(int))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
+                    int (*CacheSetPolicy)(int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
                     if (CacheSetPolicy){
                         CacheSetPolicy(CACHE_POLICY_RR);
                     }
                 }
             }
 
-            // handle CPU speed
+            // handle CPU speed settings
             switch (se_config.cpubus_clock){
                 case 1: sctrlHENSetSpeed(333, 166); break;
                 case 2: sctrlHENSetSpeed(133, 66); break;
@@ -269,16 +278,17 @@ static void ARKSyspatchOnModuleStart(SceModule2 * mod)
     
 flush:
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
     
 exit:
     // Forward to previous Handler
-    if(previous) previous(mod);
+    if(previous) return previous(mod);
+    return 0;
 }
 
 // Add Module Start Patcher
 void syspatchInit(void)
 {
     // Register Module Start Handler
-    previous = sctrlHENSetStartModuleHandler((int (*)(SceModule2 *))ARKSyspatchOnModuleStart);
+    previous = sctrlHENSetStartModuleHandler(ARKSyspatchOnModuleStart);
 }

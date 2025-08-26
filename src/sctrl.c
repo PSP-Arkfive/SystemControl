@@ -15,6 +15,8 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
@@ -23,23 +25,25 @@
 #include <pspiofilemgr.h>
 #include <pspsysmem_kernel.h>
 #include <pspinit.h>
-#include <systemctrl.h>
-#include <systemctrl_private.h>
-#include <stdio.h>
-#include <string.h>
-#include <module2.h>
+
 #include <ark.h>
-#include <macros.h>
-#include <functions.h>
+#include <cfwmacros.h>
+#include <module2.h>
+#include <systemctrl.h>
+#include <systemctrl_se.h>
+#include <systemctrl_private.h>
+
 #include "rebootex.h"
 #include "nidresolver.h"
 #include "modulemanager.h"
 #include "loadercore.h"
 #include "imports.h"
 #include "sysmem.h"
+#include "nidresolver.h"
+#include "gameinfo.h"
 
-extern int readGameIdFromDisc();
-extern u32 resolveMissingNid(const char * libName, u32 nid);
+// Missing from SDK
+#define PSP_INIT_APITYPE_EF2 0x152
 
 // Load Execute Module via Kernel Internal Function
 int (* _sceLoadExecVSHWithApitype)(int, const char*, struct SceKernelLoadExecVSHParam*, unsigned int) = NULL;
@@ -48,11 +52,24 @@ int sctrlKernelLoadExecVSHWithApitype(int apitype, const char * file, struct Sce
     // Elevate Permission Level
     unsigned int k1 = pspSdkSetK1(0);
 
+    // obtain game id
+    u32 n = sizeof(rebootex_config.game_id);
+    memset(rebootex_config.game_id, 0, n);
     if (apitype == PSP_INIT_APITYPE_DISC || apitype == 0x160){
         readGameIdFromDisc();
     }
     else {
-        memset(rebootex_config.game_id, 0, 10);
+        sctrlGetSfoPARAM(file, "DISC_ID", NULL, &n, rebootex_config.game_id);
+    }
+
+    // ef-aware homebrew
+    if (apitype == PSP_INIT_APITYPE_EF2){
+        u32 psize = sizeof(int);
+        int efaware = 0;
+        if (sctrlGetSfoPARAM(file, "EFAWARE", NULL, &psize, &efaware)>=0 && efaware){
+            apitype = PSP_INIT_APITYPE_MS2;
+            rebootex_config.fake_apitype = PSP_INIT_APITYPE_MS2;
+        }
     }
 
     // Load Execute Module
@@ -91,8 +108,6 @@ int sctrlKernelLoadExecVSHDiscUpdater(const char *file, struct SceKernelLoadExec
 
 int sctrlKernelLoadExecVSHEf2(const char *file, struct SceKernelLoadExecVSHParam *param)
 {
-    // Missing from SDK
-    #define PSP_INIT_APITYPE_EF2 0x152
     return sctrlKernelLoadExecVSHWithApitype(PSP_INIT_APITYPE_EF2, file, param);
 }
 
@@ -133,7 +148,7 @@ int sctrlKernelSetUserLevel(int level)
     _sw((level ^ 8) << 28, *(unsigned int *)(threadman_userlevel_struct) + 0x14);
     
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
     
     // Restore Permission Level
     pspSdkSetK1(k1);
@@ -157,7 +172,7 @@ int sctrlKernelSetDevkitVersion(int version)
     _sh((version & 0xFFFF), DevkitVersion+8);
     
     // Flush Cache
-    flushCache();
+    sctrlFlushCache();
     
     // Restore Permission Level
     pspSdkSetK1(k1);
@@ -185,7 +200,7 @@ int sctrlPatchModule(char * modname, u32 inst, u32 offset)
         _sw(inst, mod->text_addr + offset);
         
         // Flush Cache
-        flushCache();
+        sctrlFlushCache();
     }
     
     // Module not found
@@ -245,7 +260,9 @@ unsigned int sctrlKernelRand(void)
     };
     
     // Create 20 Random Bytes
-    sceUtilsBufferCopyWithRange(buffer, 20, NULL, 0, KIRK_PRNG_CMD);
+    int (*_sceUtilsBufferCopyWithRange)(void * inbuf, SceSize insize, void * outbuf, int outsize, int cmd)
+        = (void*)sctrlHENFindFunction("sceMemlmd", "semaphore", 0x4C537C72);
+    _sceUtilsBufferCopyWithRange(buffer, 20, NULL, 0, KIRK_PRNG_CMD);
     
     // Fetch Random Number
     unsigned int random = *(unsigned int *)buffer;
@@ -334,9 +351,8 @@ int sctrlKernelSetInitKeyConfig(int key)//old sctrlKernelSetInitMode
 int sctrlKernelMsIsEf(){
     int k1 = pspSdkSetK1(0);
     int apitype = sceKernelInitApitype();
-    int res = (apitype == 0x125 || apitype ==  0x126 || apitype == 0x152 || apitype == 0x155);
     pspSdkSetK1(k1);
-    return res;
+    return (apitype == 0x125 || apitype ==  0x126 || apitype == 0x152 || apitype == 0x155) ? 1 : 0;
 }
 
 // Return Text Address of init.prx
@@ -374,9 +390,7 @@ int sctrlGzipDecompress(void* dest, void* src, int size){
     return ret;
 }
 
-// EBOOT.PBP Parameter Getter
-int sctrlGetInitPARAM(const char * paramName, u16 * paramType, u32 * paramLength, void * paramBuffer)
-{
+int sctrlGetSfoPARAM(const char* sfo_path, const char * paramName, u16 * paramType, u32 * paramLength, void * paramBuffer){
     // Enable Full Kernel Permission for Syscalls
     u32 k1 = pspSdkSetK1(0);
     
@@ -400,25 +414,27 @@ int sctrlGetInitPARAM(const char * paramName, u16 * paramType, u32 * paramLength
         return 0x80000104;
     }
 
-    const char * pbpPath = sceKernelInitFileName();
     u32 paramOffset = 0;
-    
-    // Init Filename not found
-    if (pbpPath == NULL)
-    {
-        // Restore Syscall Permissions
-        pspSdkSetK1(k1);
-        
-        // Return Error Code
-        return 0x80010002;
-    }
 
-    if (strncmp(pbpPath, "disc0", 5) == 0){
-        pbpPath = "disc0:/PSP_GAME/PARAM.SFO";
+    if (sfo_path == NULL){
+        sfo_path = sceKernelInitFileName();
+
+        // Init Filename not found
+        if (sfo_path == NULL)
+        {
+            // Restore Syscall Permissions
+            pspSdkSetK1(k1);
+            // Return Error Code
+            return 0x80010002;
+        }
+
+        if (strncmp(sfo_path, "disc0", 5) == 0){
+            sfo_path = "disc0:/PSP_GAME/PARAM.SFO";
+        }
     }
     
     // Open PBP File
-    int fd = sceIoOpen(pbpPath, PSP_O_RDONLY, 0);
+    int fd = sceIoOpen(sfo_path, PSP_O_RDONLY, 0);
     
     // PBP File not found
     if (fd < 0)
@@ -569,6 +585,12 @@ int sctrlGetInitPARAM(const char * paramName, u16 * paramType, u32 * paramLength
     return 0x80010002;
 }
 
+// EBOOT.PBP Parameter Getter
+int sctrlGetInitPARAM(const char * paramName, u16 * paramType, u32 * paramLength, void * paramBuffer)
+{
+    return sctrlGetSfoPARAM(NULL, paramName, paramType, paramLength, paramBuffer);
+}
+
 int sctrlKernelSetUMDEmuFile(const char *filename)
 {
     // Invalid Argument
@@ -579,7 +601,7 @@ int sctrlKernelSetUMDEmuFile(const char *filename)
     
     // Link Buffer
     char** kernel_init_filename = (char**)(kernel_init_apitype + 4);
-    kernel_init_filename[1] = filename;
+    kernel_init_filename[1] = (char*)filename;
     
     // Return Success
     return 0;

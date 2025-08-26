@@ -15,17 +15,16 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <string.h>
 #include <pspsdk.h>
 #include <pspinit.h>
 #include <pspkernel.h>
 #include <pspctrl.h>
+
+#include <ark.h>
+#include <cfwmacros.h>
 #include <systemctrl.h>
 #include <systemctrl_se.h>
-#include <macros.h>
-#include <string.h>
-#include <ark.h>
-#include <functions.h>
-#include <graphics.h>
 
 // Exit Button Mask
 #define EXIT_MASK_CL (PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER | PSP_CTRL_START | PSP_CTRL_DOWN)
@@ -48,29 +47,35 @@ static int exitVsh(){
     // Refuse Operation in Dialog
     if(sceKernelFindModuleByName("sceDialogmain_Module") != NULL) return 0;
 
-    int (*setHoldMode)(int) = (int (*)(int))sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
+    int (*setHoldMode)(int) = (void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
     if (setHoldMode) setHoldMode(0);
 
+    // reset some flags
     ark_config->recovery = 0;
+    SetUmdFile(NULL);
+    sctrlSESetBootConfFileIndex(MODE_UMD);
+
     int res = sctrlKernelExitVSH(NULL);
 
-    pspSdkSetK1(0);
+    pspSdkSetK1(k1);
     return res;
 }
 
-int exitLauncher()
+int sctrlArkExitLauncher()
 {
 
     int k1 = pspSdkSetK1(0);
 
     // Refuse Operation in Save dialog
-    if(sceKernelFindModuleByName("sceVshSDUtility_Module") != NULL) return 0;
-    
+    if(sceKernelFindModuleByName("sceVshSDUtility_Module") != NULL){
+        pspSdkSetK1(k1);
+        return 0;
+    }
     // Refuse Operation in Dialog
-    if(sceKernelFindModuleByName("sceDialogmain_Module") != NULL) return 0;
-
-    // Load Execute Parameter
-    struct SceKernelLoadExecVSHParam param;
+    if(sceKernelFindModuleByName("sceDialogmain_Module") != NULL){
+        pspSdkSetK1(k1);
+        return 0;
+    }
 
     // set exit app
     char path[ARK_PATH_SIZE];
@@ -79,25 +84,24 @@ int exitLauncher()
     else if (ark_config->launcher[0]) strcat(path, ark_config->launcher);
     else strcat(path, VBOOT_PBP);
 
-    int (*setHoldMode)(int) = (int (*)(int))sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
+    int (*setHoldMode)(int) = (void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x7ED59BC4);
     if (setHoldMode) setHoldMode(0);
 
-    SceIoStat stat; int res = sceIoGetstat(path, &stat);
+    // reset some flags
+    SetUmdFile(NULL);
+    sctrlSESetBootConfFileIndex(MODE_UMD);
 
+    SceIoStat stat; int res = sceIoGetstat(path, &stat);
     if (res >= 0){
+        // Load Execute Parameter
+        struct SceKernelLoadExecVSHParam param;
         // Clear Memory
         memset(&param, 0, sizeof(param));
-
         // Configure Parameters
         param.size = sizeof(param);
         param.args = strlen(path) + 1;
         param.argp = path;
         param.key = "game";
-
-        // set default mode
-        sctrlSESetUmdFile("");
-        sctrlSESetBootConfFileIndex(MODE_UMD);
-        
         // Trigger Reboot
         ark_config->recovery = 0; // reset recovery mode for next reboot
         sctrlKernelLoadExecVSHWithApitype(0x141, path, &param);
@@ -133,7 +137,7 @@ static void startExitThread(){
         pspSdkEnableInterrupts(intc);
         return; // already exiting
     }
-    int uid = sceKernelCreateThread("ExitGamePollThread", (exit_type)?exitVsh:exitLauncher, 1, 4096, 0, NULL);
+    int uid = sceKernelCreateThread("ExitGamePollThread", (exit_type)?(void*)exitVsh:(void*)sctrlArkExitLauncher, 1, 4096, 0, NULL);
     pspSdkEnableInterrupts(intc);
     sceKernelStartThread(uid, 0, NULL);
     sceKernelWaitThreadEnd(uid, NULL);
@@ -298,8 +302,8 @@ void patchController(SceModule2* mod)
     CtrlReadBufferNegative = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x60B81F86);
 
     // Hook Gamepad Input
-    HIJACK_FUNCTION((u32)CtrlPeekBufferPositive, peek_positive, CtrlPeekBufferPositive);
-    HIJACK_FUNCTION((u32)CtrlPeekBufferNegative, peek_negative, CtrlPeekBufferNegative);
-    HIJACK_FUNCTION((u32)CtrlReadBufferPositive, read_positive, CtrlReadBufferPositive);
-    HIJACK_FUNCTION((u32)CtrlReadBufferNegative, read_negative, CtrlReadBufferNegative);
+    HIJACK_FUNCTION(CtrlPeekBufferPositive, peek_positive, CtrlPeekBufferPositive);
+    HIJACK_FUNCTION(CtrlPeekBufferNegative, peek_negative, CtrlPeekBufferNegative);
+    HIJACK_FUNCTION(CtrlReadBufferPositive, read_positive, CtrlReadBufferPositive);
+    HIJACK_FUNCTION(CtrlReadBufferNegative, read_negative, CtrlReadBufferNegative);
 }

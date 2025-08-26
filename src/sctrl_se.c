@@ -15,6 +15,8 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
@@ -26,11 +28,11 @@
 #include <systemctrl.h>
 #include <systemctrl_se.h>
 #include <systemctrl_private.h>
-#include <stdio.h>
-#include <string.h>
-#include <module2.h>
+
 #include <ark.h>
-#include <macros.h>
+#include <cfwmacros.h>
+#include <module2.h>
+
 #include "rebootex.h"
 #include "nidresolver.h"
 #include "modulemanager.h"
@@ -69,9 +71,9 @@ SEConfig se_config = {
 
 char *GetUmdFile(void) __attribute__((alias("sctrlSEGetUmdFile")));
 
-void SetUmdFile(char *file) __attribute__((alias("sctrlSESetUmdFile")));
+void SetUmdFile(const char *file) __attribute__((alias("sctrlSESetUmdFile")));
 
-void sctrlSEApplyConfig(SEConfig *config) __attribute__((alias("sctrlSESetConfig")));
+int sctrlSEApplyConfig(SEConfig *config) __attribute__((alias("sctrlSESetConfig")));
 
 // we keep this here for compatibility
 // ARK doesn't use this and it isn't persistent
@@ -150,7 +152,7 @@ char *sctrlSEGetUmdFileEx(char *input)
 }
 
 // Set Reboot Configuration UMD File
-void sctrlSESetUmdFile(char * file)
+void sctrlSESetUmdFile(const char * file)
 {
     if (file == NULL || file[0] == 0){
         rebootex_config.iso_path[0] = 0;

@@ -15,16 +15,17 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspsysmem_kernel.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
 #include <psppower.h>
-#include <stdio.h>
-#include <string.h>
 #include <pspinit.h>
+
+#include <cfwmacros.h>
 #include <systemctrl.h>
-#include "macros.h"
         
 int (* scePowerSetClockFrequency_k)(int cpufreq, int ramfreq, int busfreq);
 
@@ -39,12 +40,12 @@ static const u32 cpu_nid_list[] = {
 
 void SetSpeed(int cpu, int bus)
 {
-    scePowerSetClockFrequency_k = (int (*)(int,  int,  int))sctrlHENFindFunction("scePower_Service", "scePower", 0x737486F2); //scePowerSetClockFrequency
+    scePowerSetClockFrequency_k = (void*)sctrlHENFindFunction("scePower_Service", "scePower", 0x737486F2); //scePowerSetClockFrequency
     scePowerSetClockFrequency_k(cpu, cpu, bus);
 
     int apitype = sceKernelInitApitype();
     if(apitype ==  0x210 || apitype ==  0x220) {
-        hookImportByNID((SceModule2 *)sceKernelFindModuleByName("vsh_module"), "scePower", 0x469989AD, NULL);
+        sctrlHookImportByNID((SceModule2*)sceKernelFindModuleByName("vsh_module"), "scePower", 0x469989AD, NULL);
     }
     else {
         MAKE_DUMMY_FUNCTION_RETURN_0((u32)scePowerSetClockFrequency_k);
@@ -55,6 +56,6 @@ void SetSpeed(int cpu, int bus)
             MAKE_DUMMY_FUNCTION_RETURN_0( patch_addr );
         }
 
-        flushCache();
+        sctrlFlushCache();
     }
 }

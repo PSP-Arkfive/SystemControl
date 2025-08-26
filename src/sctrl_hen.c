@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
@@ -6,29 +9,48 @@
 #include <pspiofilemgr.h>
 #include <pspsysmem_kernel.h>
 #include <pspinit.h>
-#include <systemctrl.h>
-#include <systemctrl_private.h>
-#include <stdio.h>
-#include <string.h>
-#include <module2.h>
+
 #include <ark.h>
-#include <macros.h>
-#include <functions.h>
+#include <cfwmacros.h>
+#include <module2.h>
+#include <systemctrl.h>
+#include <systemctrl_se.h>
+#include <systemctrl_private.h>
+
 #include "rebootex.h"
 #include "nidresolver.h"
 #include "modulemanager.h"
 #include "loadercore.h"
 #include "imports.h"
 #include "sysmem.h"
+#include "cpuclock.h"
+#include "patches.h"
 
+extern SEConfig se_config;
 
-extern void SetSpeed(int cpu, int bus);
-extern void patchLedaPlugin(void* handler);
+int p2_size = 24;
 
+int sctrlHENSetMemory(u32 p2, u32 p9){
+    return 0; // unused in ARK
+}
 
-int sctrlHENSetMemory(u32 p2, u32 p9)
+int sctrlHENApplyMemory(u32 p2) // stub (to be highjacked and implemented by compat layer)
 {
-    return 0;
+    // can't modify ram after boot
+    if (isSystemBooted()) return -3;
+    // check for unlock
+    if (p2 > 24){
+        if (p2_size > 24) return -2; // already enabled
+        p2_size = p2;
+        return 0;
+    }
+    // check for default
+    else if (p2 == 24){
+        if (p2_size == 24) return -2; // already enabled
+        p2_size = p2;
+        return 0;
+    }
+    return -1;
 }
 
 // Get HEN Version
@@ -54,13 +76,13 @@ int sctrlHENIsDevhook()
 }
 
 // Find Filesystem Driver
-PspIoDrv * sctrlHENFindDriver(char * drvname)
+PspIoDrv * sctrlHENFindDriver(const char * drvname)
 {
     // Elevate Permission Level
     unsigned int k1 = pspSdkSetK1(0);
     
     // Find Function
-    int * (* findDriver)(char * drvname) = (void*)findFirstJAL(sctrlHENFindFunction("sceIOFileManager", "IoFileMgrForKernel", 0x76DA16E3));
+    int * (* findDriver)(const char * drvname) = (void*)findFirstJAL(sctrlHENFindFunction("sceIOFileManager", "IoFileMgrForKernel", 0x76DA16E3));
     
     // Find Driver Wrapper
     int * wrapper = findDriver(drvname);
@@ -79,11 +101,11 @@ PspIoDrv * sctrlHENFindDriver(char * drvname)
     pspSdkSetK1(k1);
 
     if (driver == NULL){
-        if(0 == stricmp(drvname, "msstor")) {
+        if(0 == strcasecmp(drvname, "msstor")) {
         	return sctrlHENFindDriver("eflash0a0f");
         }
 
-        if(0 == stricmp(drvname, "msstor0p")) {
+        if(0 == strcasecmp(drvname, "msstor0p")) {
         	return sctrlHENFindDriver("eflash0a0f1p");
         }
     }
@@ -123,7 +145,7 @@ void sctrlHENPatchSyscall(void * addr, void * newaddr)
 STMOD_HANDLER sctrlHENSetStartModuleHandler(STMOD_HANDLER new_handler)
 {
     // Get Previous Handler
-    STMOD_HANDLER on_module_start = (int (*)(SceModule2 *))g_module_start_handler;
+    STMOD_HANDLER on_module_start = g_module_start_handler;
     
     // Register Handler
     g_module_start_handler = (void *)(KERNELIFY(new_handler));
@@ -144,7 +166,7 @@ unsigned int sctrlHENFindFunction(char * szMod, char * szLib, unsigned int nid)
         // Resolve NID
         nid = getNidReplacement(resolver, nid);
     }
-    
+
     // Find Target Module
     SceModule2 * pMod = (SceModule2 *)sceKernelFindModuleByName(szMod);
     
@@ -203,9 +225,9 @@ u32 sctrlHENGetInitControl()
     return (u32)kernel_init_apitype - 8;
 }
 
-u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid)
+unsigned int sctrlHENFindImport(const char *szMod, const char *szLib, unsigned int nid)
 {
-    SceModule2 *mod = (SceModule2 *)sceKernelFindModuleByName(szMod);
+    SceModule2 *mod = (SceModule2*)sceKernelFindModuleByName(szMod);
     if(!mod) return 0;
 
     for(int i = 0; i < mod->stub_size;)
@@ -214,7 +236,7 @@ u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid)
 
         if(stub->libname && strcmp(stub->libname, szLib) == 0)
         {
-            u32 *table = (u32 *)stub->nidtable;
+            unsigned int *table = stub->nidtable;
 
             for(int j = 0; j < stub->stubcount; j++)
             {
@@ -231,13 +253,9 @@ u32 sctrlHENFindImport(const char *szMod, const char *szLib, u32 nid)
     return 0;
 }
 
-void* sctrlHENGetArkConfig(ARKConfig* conf){
+void* sctrlArkGetConfig(ARKConfig* conf){
     if (conf) memcpy(conf, ark_config, sizeof(ARKConfig));
     return ark_config;
-}
-
-void sctrlHENSetArkConfig(ARKConfig* conf){
-    memcpy(ark_config, conf, sizeof(ARKConfig));
 }
 
 void sctrlHENLoadModuleOnReboot(char *module_before, void *buf, int size, int flags)
@@ -259,7 +277,7 @@ extern void* custom_rebootex;
 void sctrlHENSetRebootexOverride(const u8 *rebootex)
 {
     if (rebootex != NULL) // override rebootex
-        custom_rebootex = rebootex;
+        custom_rebootex = (void*)rebootex;
 }
 
 extern int (* LoadRebootOverrideHandler)(void * arg1, unsigned int arg2, void * arg3, unsigned int arg4);
@@ -293,6 +311,7 @@ void sctrlHENRegisterLLEHandler(void* handler)
 int sctrlHENRegisterHomebrewLoader(void* handler)
 {
     // register handler and patch leda
+    extern void patchLedaPlugin(void* handler);
     patchLedaPlugin(handler);
     return 0;
 }
@@ -335,7 +354,7 @@ int sctrlHENIsToolKit()
 
     if (ark_config->exec_mode == PSP_TOOL){
         int baryon_ver = 0;
-        int (*getBaryonVer)(void*) = (int (*)(void *))sctrlHENFindFunction("sceSYSCON_Driver", "sceSyscon_driver", 0x7EC5A957);
+        int (*getBaryonVer)(void*) = (void*)sctrlHENFindFunction("sceSYSCON_Driver", "sceSyscon_driver", 0x7EC5A957);
         if (getBaryonVer) getBaryonVer(&baryon_ver);
         if (baryon_ver == 0x00020601){
             ret = 2; // DevelopmentTool

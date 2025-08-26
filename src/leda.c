@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ark.h>
-#include <macros.h>
+#include <cfwmacros.h>
 #include <systemctrl.h>
 
 
@@ -60,7 +60,7 @@ int get_addr(void *outbuf, u32 outcapacity, void *inbuf, void *unk)
 }
 
 STMOD_HANDLER leda_previous = NULL;
-void LedaModulePatch(SceModule2 *mod)
+int LedaModulePatch(SceModule2 *mod)
 {
 //    u32 text_addr = mod->text_addr;
     char *modinfo=mod->modname;
@@ -69,10 +69,11 @@ void LedaModulePatch(SceModule2 *mod)
     {       
         MAKE_DUMMY_FUNCTION_RETURN_0(0x889007A8);
         _sw((u32)get_addr, 0x8891C300);
-        flushCache();
+        sctrlFlushCache();
     }
    
-    if( leda_previous ) leda_previous( mod );
+    if( leda_previous ) return leda_previous( mod );
+    return 0;
 }
 
 // patch leda
@@ -97,13 +98,13 @@ void patchLedaPlugin(void* handler){
     _sw(NOP, text_addr + 0x1140);
 
     // patch init sceKernelLoadModuleMs2
-    KernelLoadModuleMs2_orig = (SceUID (*)())sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x7BD53193);
-    hookImportByNID(init, "ModuleMgrForKernel", 0x7BD53193, sceKernelLoadModuleMs2_patched);
+    KernelLoadModuleMs2_orig = (void*)sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x7BD53193);
+    sctrlHookImportByNID(init, "ModuleMgrForKernel", 0x7BD53193, sceKernelLoadModuleMs2_patched);
 
     // register handler for custom fixes to legacy games
-    leda_previous = (int (*)(SceModule2 *))sctrlHENSetStartModuleHandler( (int (*)(SceModule2 *))LedaModulePatch );
+    leda_previous = sctrlHENSetStartModuleHandler(LedaModulePatch);
 
     leda_running = 1; // disable checkexec in modman
     
-    flushCache();
+    sctrlFlushCache();
 }

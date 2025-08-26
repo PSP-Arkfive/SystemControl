@@ -1,11 +1,12 @@
-#include <sdk.h>
+#include <string.h>
+#include <pspsdk.h>
 #include <psploadexec.h>
 #include <psploadexec_kernel.h>
 #include <psputility_modules.h>
+
 #include <module2.h>
-#include <macros.h>
+#include <cfwmacros.h>
 #include <systemctrl_se.h>
-#include <string.h>
 
 int sctrlGetThreadUIDByName(const char * name)
 {

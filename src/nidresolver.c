@@ -15,23 +15,23 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
-#include <stdio.h>
-#include <string.h>
-#include <macros.h>
+
+#include <ark.h>
+#include <cfwmacros.h>
 #include <module2.h>
 #include <systemctrl.h>
 #include <systemctrl_private.h>
-#include <ark.h>
+
 #include "missingfunc.h"
 #include "nidresolver.h"
 
 // Original NID Filler
 int (* g_origNIDFiller)(void *lib, unsigned int nid, unsigned int unk2, unsigned int unk3) = NULL;
-static int (*sceKernelLinkLibraryEntries)(void *buf, int size) = NULL;
-static int (*sceKernelLinkLibraryEntriesForUser)(u32 unk0, void *buf, int size) = NULL;
 
 // NID Table
 NidResolverLib * nidTable = NULL;
@@ -161,7 +161,7 @@ NidMissingResolver *g_missing_resolver[] =
 /////////////////////////////////////////////////////////////////////////
 
 // Missing NID Resolver
-u32 resolveMissingNid(const char * libName, u32 nid)
+unsigned int resolveMissingNid(const char * libName, unsigned int nid)
 {
     // Iterate Missing Library Resolver
     int i = 0; for(; i < NELEMS(g_missing_resolver); ++i)
@@ -203,14 +203,11 @@ int fillLibraryStubs(void * lib, unsigned int nid, void * stub, unsigned int nid
     // NidResolverEx
     if (lle_handler)
     {
-        lle_handler((void *)stubtable);
+        lle_handler((void*)stubtable);
     }
     
     // Calculate Stub Destination Address
     unsigned int dest = nidPos * 8 + stubtable;
-    
-    // ???
-    if(_lw((unsigned int)stub+52) != 0) goto exit;
     
     // Find Version
     unsigned int * version = (unsigned int *)sctrlHENFindFunction((void *)_lw((unsigned int)stub+36), NULL, 0x11B97506);
@@ -356,6 +353,6 @@ void setupNidResolver(SceModule2* mod)
         }
     }
     
-    flushCache();
+    sctrlFlushCache();
 }
 

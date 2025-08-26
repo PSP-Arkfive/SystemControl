@@ -1,13 +1,15 @@
+#include <string.h>
 #include <pspsdk.h>
 #include <pspinit.h>
 #include <pspiofilemgr.h>
 #include <pspsysmem_kernel.h>
-#include <rebootex.h>
-#include <systemctrl.h>
 
 #include <ark.h>
-#include "macros.h"
-#include "module2.h"
+#include <cfwmacros.h>
+#include <module2.h>
+#include <systemctrl.h>
+
+#include "rebootex.h"
 
 struct LbaParams {
     int unknown1; // 0
@@ -50,8 +52,8 @@ int readGameIdFromDisc(){
 }
 
 int readGameIdFromPBP(){
-    u32 n = 10;
-    u32 res = sctrlGetInitPARAM("DISC_ID", NULL, &n, rebootex_config.game_id);
+    u32 n = sizeof(rebootex_config.game_id);
+    int res = sctrlGetInitPARAM("DISC_ID", NULL, &n, rebootex_config.game_id);
     if (res < 0) return 0;
     return 1;
 }
@@ -59,7 +61,7 @@ int readGameIdFromPBP(){
 int readGameIdFromISO(){
 
     int (*iso_read)(u32 offset, void *ptr, u32 data_len) =
-        (int (*)(u32,  void *, u32))sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB573209C);
+        (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB573209C);
     if (!iso_read) return 0;
 
     int res = iso_read(16*2048+883, rebootex_config.game_id, sizeof(rebootex_config.game_id));
@@ -80,22 +82,24 @@ int readGameIdFromISO(){
 void findGameId(){
 
     int apitype = sceKernelInitApitype();
-    if (apitype == 0x141 || apitype == 0x152 || apitype >= 0x200 || apitype == 0x120 || apitype == 0x160){
+    if (apitype == 0x141 || apitype == 0x152 || apitype == 0x120 || apitype == 0x160 || apitype >= 0x200){
         return;
     }
 
     void * (* SysMemForKernel_EF29061C)(void) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemForKernel", 0xEF29061C);
     unsigned char * gameinfo = NULL;
 
-    if (sceKernelFindModuleByName("PRO_Inferno_Driver") != NULL){
-        readGameIdFromISO();
-    }
-    else {
-        readGameIdFromPBP();
+    if (rebootex_config.game_id[0] == 0){
+        if (sceKernelFindModuleByName("PRO_Inferno_Driver") != NULL){
+            readGameIdFromISO();
+        }
+        else {
+            readGameIdFromPBP();
+        }
     }
 
     if (rebootex_config.game_id[0] != 0){
-        memcpy(defaultdata.id, rebootex_config.game_id, 9);
+        memcpy((void*)defaultdata.id, rebootex_config.game_id, 9);
     }
 
     if (SysMemForKernel_EF29061C && (gameinfo=SysMemForKernel_EF29061C())) {
@@ -112,13 +116,13 @@ void * getUMDDataFixed(void)
     void * (* SysMemForKernel_EF29061C)(void) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemForKernel", 0xEF29061C);
     
     // Function unavailable (how?!)
-    if(SysMemForKernel_EF29061C == NULL) return &defaultdata;
+    if(SysMemForKernel_EF29061C == NULL) return (void*)&defaultdata;
     
     // Get Game Info Structure
     unsigned char * gameinfo = SysMemForKernel_EF29061C();
     
     // Structure unavailable
-    if(gameinfo == NULL) return &defaultdata;
+    if(gameinfo == NULL) return (void*)&defaultdata;
     
     // Set Game ID if we know it
     if (rebootex_config.game_id[0] != 0){
@@ -136,7 +140,7 @@ void patchGameInfoGetter(SceModule2 * mod)
     if((mod->text_addr & 0x80000000) != 0)
     {
         // Hook Import
-        hookImportByNID(mod, "SysMemForKernel", 0xEF29061C, getUMDDataFixed);
+        sctrlHookImportByNID(mod, "SysMemForKernel", 0xEF29061C, getUMDDataFixed);
     }
 }
 

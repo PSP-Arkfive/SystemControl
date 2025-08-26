@@ -74,5 +74,7 @@ void resolve_syscon_driver(SceModule2*);
 // Initialize NID Resolver
 void setupNidResolver(SceModule2* loadcore);
 
+unsigned int resolveMissingNid(const char * libName, unsigned int nid);
+
 #endif
 
