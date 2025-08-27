@@ -31,6 +31,7 @@
 
 #ifdef DEBUG
 #include <screenprinter.h>
+#include <colordebugger.h>
 #endif
 
 PSP_MODULE_INFO("SystemControl", 0x3007, 4, 0);
