@@ -23,7 +23,7 @@
 #define CACHE_BUFSIZE_GO (8 * 1024)
 
 // Initialize "ms" Driver Cache
-int msstorCacheInit(const char* driver, int bufSize);
+int msstorCacheInit(const char* driver);
 
 #endif
 
