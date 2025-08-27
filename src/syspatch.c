@@ -36,7 +36,6 @@
 #include "rebootconfig.h"
 #include "sysmem.h"
 #include "psnfix.h"
-#include "patches.h"
 #include "loadexec_patch.h"
 #include "gameinfo.h"
 #include "exitgame.h"
@@ -147,7 +146,7 @@ static int ARKSyspatchOnModuleStart(SceModule2 * mod)
         // Hijack all execute calls
         extern int (* _sceLoadExecVSHWithApitype)(int, const char*, struct SceKernelLoadExecVSHParam*, unsigned int);
         extern int sctrlKernelLoadExecVSHWithApitype(int apitype, const char * file, struct SceKernelLoadExecVSHParam * param);
-        u32 _LoadExecVSHWithApitype = findFirstJAL(sctrlHENFindFunction("sceLoadExec", "LoadExecForKernel", 0xD8320A28));
+        u32 _LoadExecVSHWithApitype = sctrlHENFindFirstJAL(sctrlHENFindFunction("sceLoadExec", "LoadExecForKernel", 0xD8320A28));
         HIJACK_FUNCTION(_LoadExecVSHWithApitype, sctrlKernelLoadExecVSHWithApitype, _sceLoadExecVSHWithApitype);
 
         // Hijack exit calls

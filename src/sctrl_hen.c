@@ -24,7 +24,6 @@
 #include "imports.h"
 #include "sysmem.h"
 #include "cpuclock.h"
-#include "patches.h"
 
 extern SEConfig se_config;
 
@@ -82,7 +81,7 @@ PspIoDrv * sctrlHENFindDriver(const char * drvname)
     unsigned int k1 = pspSdkSetK1(0);
     
     // Find Function
-    int * (* findDriver)(const char * drvname) = (void*)findFirstJAL(sctrlHENFindFunction("sceIOFileManager", "IoFileMgrForKernel", 0x76DA16E3));
+    int * (* findDriver)(const char * drvname) = (void*)sctrlHENFindFirstJAL(sctrlHENFindFunction("sceIOFileManager", "IoFileMgrForKernel", 0x76DA16E3));
     
     // Find Driver Wrapper
     int * wrapper = findDriver(drvname);

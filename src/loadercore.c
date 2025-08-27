@@ -38,7 +38,6 @@
 #include "rebootex.h"
 #include "gameinfo.h"
 #include "exitgame.h"
-#include "patches.h"
 
 extern SEConfig se_config;
 
@@ -344,7 +343,7 @@ SceModule2* patchLoaderCore(void)
 
     // override the checkExec reference in the module globals
     u32 checkExec = sctrlHENFindFunction("sceLoaderCore", "LoadCoreForKernel", 0xD3353EC4);
-    u32 ref = findRefInGlobals("LoadCoreForKernel", checkExec, checkExec);
+    u32 ref = sctrlHENFindRefInGlobals("LoadCoreForKernel", checkExec, checkExec);
     _sw((unsigned int)KernelCheckExecFile, ref);
     // Flush Cache
     sctrlFlushCache();

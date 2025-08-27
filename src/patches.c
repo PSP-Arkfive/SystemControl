@@ -3,7 +3,7 @@
 
 #include <cfwmacros.h>
 
-u32 _findJAL(u32 addr, int reversed, int skip){
+u32 sctrlHENsctrlHENFindJAL(u32 addr, int reversed, int skip){
     if (addr != 0)
     {
         int add = 4;
@@ -22,7 +22,7 @@ u32 _findJAL(u32 addr, int reversed, int skip){
     return 0;
 }
 
-u32 FindFirstBEQ(u32 addr){
+u32 sctrlHENFindFirstBEQ(u32 addr){
     for (;;addr+=4){
         if ((_lw(addr) & 0xFC000000) == 0x10000000)
             return addr;
@@ -30,7 +30,7 @@ u32 FindFirstBEQ(u32 addr){
     return 0;
 }
 
-u32 findRefInGlobals(char* libname, u32 addr, u32 ptr){
+u32 sctrlHENFindRefInGlobals(char* libname, u32 addr, u32 ptr){
     while (strcmp(libname, (char*)addr))
         addr++;
     

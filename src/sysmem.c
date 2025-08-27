@@ -24,7 +24,6 @@
 #include <systemctrl_private.h>
 
 #include "sysmem.h"
-#include "patches.h"
 
 void uprotectExtraMemory()
 {
@@ -43,7 +42,7 @@ void patchSystemMemoryManager(void)
                     0x91DE343C, 0x7893F79A, 0x35669D4C, 0x1B4217BC, 0x358CA1BB };
     int i;
     for (i=0; i<sizeof(nids)/sizeof(u32); i++)
-        _sh(0x1000, FindFirstBEQ(sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", nids[i])) + 2);
+        _sh(0x1000, sctrlHENFindFirstBEQ(sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", nids[i])) + 2);
     // Flush Cache
     sctrlFlushCache();
 }
