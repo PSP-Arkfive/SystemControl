@@ -482,10 +482,10 @@ static void settingsHandler(const char* path, u8 enabled){
     }
     else if (strncasecmp(path, "infernocache", 12) == 0){
         char* c = strchr(path, ':');
-        se_config.iso_cache = enabled;
+        se_config.iso_cache_type = enabled;
         if (enabled && c){
-            if (strcasecmp(c+1, "lru") == 0) se_config.iso_cache = 1;
-            else if (strcasecmp(c+1, "rr") == 0) se_config.iso_cache = 2;
+            if (strcasecmp(c+1, "lru") == 0) se_config.iso_cache_type = 1;
+            else if (strcasecmp(c+1, "rr") == 0) se_config.iso_cache_type = 2;
         }
     }
     else if (strcasecmp(path, "noled") == 0){

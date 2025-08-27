@@ -230,22 +230,22 @@ static int ARKSyspatchOnModuleStart(SceModule2 * mod)
 
             // handle UMD seek and UMD speed settings
             if (se_config.umdseek || se_config.umdspeed){
-                se_config.iso_cache = 0;
+                se_config.iso_cache_type = 0;
                 void (*SetUmdDelay)(int, int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xB6522E93);
                 if (SetUmdDelay) SetUmdDelay(se_config.umdseek, se_config.umdspeed);
             }
 
             // handle inferno cache settings
-            if (se_config.iso_cache){
+            if (se_config.iso_cache_type){
                 extern int p2_size;
                 if (p2_size>24 || se_config.force_high_memory){
                     se_config.iso_cache_partition = 2;
                 }
-                int (*CacheInit)(int, int, int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
+                int (*CacheInit)(u32, u32, u32) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
                 if (CacheInit){
-                    CacheInit(se_config.iso_cache_size, se_config.iso_cache_num, se_config.iso_cache_partition);
+                    CacheInit((u32)se_config.iso_cache_size_kb*1024, se_config.iso_cache_num, se_config.iso_cache_partition);
                 }
-                if (se_config.iso_cache == 2){
+                if (se_config.iso_cache_type == 2){
                     int (*CacheSetPolicy)(int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
                     if (CacheSetPolicy){
                         CacheSetPolicy(CACHE_POLICY_RR);
