@@ -64,10 +64,6 @@ int module_start(SceSize args, void * argp)
     colorDebug(0xFF00);
     #endif
 
-    // set LCD framebuffer in hardware reg so we can do color debbuging
-    _sw(0x44000000, 0xBC800100);
-    colorDebug(0xFF00);
-
     // Apply Module Patches
     patchSystemMemoryManager();
     SceModule2* loadcore = patchLoaderCore();

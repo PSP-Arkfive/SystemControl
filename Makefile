@@ -35,7 +35,6 @@ OBJS = \
 	src/utility.o \
 	src/patches.o \
 	src/setlongjmp.o \
-	debug/dummy.o \
 	external/src/lowerstring.o \
 	external/src/strcasecmp.o \
 	
@@ -56,8 +55,15 @@ LIBDIR = external/libs
 LDFLAGS =  -nostartfiles
 LIBS = 
 
-
 PSP_FW_VERSION = 660
+
+ifdef DEBUG
+CFLAGS += -DDEBUG=$(DEBUG)
+OBJS += debug/exception.o debug/exception_asm.o debug/printk.o debug/jumper.o
+LIBS += -lcolordebugger -lgraphics
+else
+OBJS += debug/dummy.o
+endif
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
