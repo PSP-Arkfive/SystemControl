@@ -59,6 +59,7 @@ ifdef DEBUG
 CFLAGS += -DDEBUG=$(DEBUG)
 OBJS += debug/exception.o debug/exception_asm.o debug/printk.o debug/jumper.o
 LIBS += -lcolordebugger -lscreenprinter
+INCDIR += external/include
 else
 OBJS += debug/dummy.o
 endif
