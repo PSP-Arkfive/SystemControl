@@ -67,4 +67,3 @@ endif
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
-include external/include/beauty.mak
