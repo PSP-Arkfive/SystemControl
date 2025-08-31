@@ -3,7 +3,7 @@
 
 #include <cfwmacros.h>
 
-u32 sctrlHENsctrlHENFindJAL(u32 addr, int reversed, int skip){
+u32 sctrlHENFindJALGeneric(u32 addr, int reversed, int skip){
     if (addr != 0)
     {
         int add = 4;

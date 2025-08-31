@@ -36,6 +36,8 @@
 #include <screenprinter.h>
 #endif
 
+#include <colordebugger.h>
+
 PSP_MODULE_INFO("SystemControl", 0x3007, 4, 0);
 
 // default config when none provided by the bootloader
@@ -61,6 +63,10 @@ int module_start(SceSize args, void * argp)
     _sw(0x44000000, 0xBC800100);
     colorDebug(0xFF00);
     #endif
+
+    // set LCD framebuffer in hardware reg so we can do color debbuging
+    _sw(0x44000000, 0xBC800100);
+    colorDebug(0xFF00);
 
     // Apply Module Patches
     patchSystemMemoryManager();
