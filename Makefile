@@ -53,12 +53,14 @@ USE_KERNEL_LIBS=1
 
 LIBDIR = external/libs
 LDFLAGS =  -nostartfiles
-LIBS = -lpspsemaphore -lpspamctrl_driver \
-	-lpspinit_kernel -lpspthreadman_kernel \
-	-lpspinterruptmanager_kernel -lpsploadexec_kernel \
-	-lpspdisplay_driver -lpspkermit_driver -lpspsysmem_kernel \
-	-lpspsysclib_kernel -lpsploadcore_kernel -lpspmodulemgr_kernel \
-	-lpspusbcam_driver -lpspusb_driver -lpspchkreg_driver -lpsppower_driver \
+LIBS = -lpspinit_kernel \
+	-lpspsemaphore \
+	-lpspthreadman_kernel \
+	-lpspinterruptmanager_kernel \
+	-lpspsysmem_kernel \
+	-lpspsysclib_kernel \
+	-lpsploadcore_kernel \
+	-lpspmodulemgr_kernel \
 
 PSP_FW_VERSION = 660
 
