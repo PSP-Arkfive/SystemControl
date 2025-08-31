@@ -15,15 +15,16 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <psputilsforkernel.h>
-#include <stdio.h>
-#include <string.h>
+
+#include <ark.h>
 #include <cfwmacros.h>
 #include <systemctrl.h>
 #include <systemctrl_private.h>
-#include <ark.h>
 #include <rebootconfig.h>
 
 extern RebootConfigARK rebootex_config;

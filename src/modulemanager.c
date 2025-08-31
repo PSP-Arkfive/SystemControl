@@ -15,15 +15,17 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
+#include <string.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspiofilemgr.h>
-#include <string.h>
-#include <cfwmacros.h>
+
 #include <ark.h>
+#include <cfwmacros.h>
 #include <systemctrl.h>
 #include <systemctrl_se.h>
 #include <systemctrl_private.h>
+
 #include "elf.h"
 #include "modulemanager.h"
 

@@ -15,13 +15,15 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
-#include <pspsdk.h>
-#include <psputilsforkernel.h>
 #include <stdio.h>
 #include <string.h>
-#include <cfwmacros.h>
+#include <pspsdk.h>
+#include <psputilsforkernel.h>
+
 #include <ark.h>
+#include <cfwmacros.h>
 #include <systemctrl.h>
+
 #include "nidresolver.h"
 #include "imports.h"
 

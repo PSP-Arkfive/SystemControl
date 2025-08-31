@@ -18,7 +18,7 @@
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspsysmem_kernel.h>
-#include <malloc.h>
+
 #include "imports.h"
 
 void* generic_malloc(int size, int partition){

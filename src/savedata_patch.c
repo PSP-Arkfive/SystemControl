@@ -18,9 +18,10 @@
 #include <string.h>
 #include <pspkernel.h>
 #include <psputility.h>
-#include <systemctrl.h>
+
 #include <ark.h>
 #include <module2.h>
+#include <systemctrl.h>
 
 extern ARKConfig config;
 

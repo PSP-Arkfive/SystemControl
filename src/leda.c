@@ -1,12 +1,12 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspthreadman_kernel.h>
 #include <pspopenpsid.h>
 #include <psputilsforkernel.h>
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ark.h>
 #include <cfwmacros.h>
 #include <systemctrl.h>

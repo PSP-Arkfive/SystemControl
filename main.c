@@ -16,9 +16,11 @@
  */
 
 #include <pspsdk.h>
+
+#include <ark.h>
 #include <systemctrl.h>
 #include <systemctrl_private.h>
-#include <ark.h> 
+
 #include "rebootex.h"
 #include "modulemanager.h"
 #include "loadercore.h"
@@ -30,6 +32,7 @@
 #include "exception.h"
 
 #ifdef DEBUG
+#include <colordebugger.h>
 #include <screenprinter.h>
 #endif
 

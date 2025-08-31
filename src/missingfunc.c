@@ -15,10 +15,10 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
-#include <pspsdk.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pspsdk.h>
 
 /*
  * This file contains functions that Sony used to have in the Kernel,

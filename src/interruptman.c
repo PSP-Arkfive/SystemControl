@@ -15,14 +15,15 @@
  * along with PRO CFW. If not, see <http://www.gnu.org/licenses/ .
  */
 
-#include <pspsdk.h>
-#include <pspkernel.h>
 #include <stdio.h>
 #include <string.h>
+#include <pspsdk.h>
+#include <pspkernel.h>
+
 #include <ark.h>
 #include <cfwmacros.h>
 #include <systemctrl.h>
-#include "module2.h"
+#include <module2.h>
 
 extern ARKConfig* ark_config;
 

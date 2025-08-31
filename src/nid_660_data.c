@@ -16,7 +16,9 @@
  */
 
 #include <pspsdk.h>
+
 #include <cfwmacros.h>
+
 #include "nidresolver.h"
 
 static NidResolverEntry SysMemForKernel_nid[] = {

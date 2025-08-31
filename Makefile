@@ -42,17 +42,6 @@ OBJS = \
 all: $(TARGET).prx
 INCDIR = include external/include
 CFLAGS = -std=c99 -Os -G0 -Wall -fno-pic
-
-ifdef DISABLE_PSID_CHECK
-CFLAGS += -DDISABLE_PSID_CHECK=$(DISABLE_PSID_CHECK)
-endif
-
-ifdef FLASH_RESTORE
-CFLAGS += -DFLASH_RESTORE=$(FLASH_RESTORE)
-endif
-
-CFLAGS += -I include -I $(ARKROOT)/common/include/ -I $(ARKROOT)/libs/graphics/
-
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
