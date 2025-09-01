@@ -180,19 +180,6 @@ int KernelCheckExecFile(unsigned char * buffer, int * check)
     return result;
 }
 
-static void loadXmbControl(){
-    int apitype = sceKernelInitApitype();
-    if (apitype == 0x200 || apitype ==  0x210 || apitype ==  0x220 || apitype == 0x300){
-        // load XMB Control Module
-        char path[ARK_PATH_SIZE];
-        strcpy(path, ark_config->arkpath);
-        strcat(path, XMBCTRL_PRX);
-        int modid = sceKernelLoadModule(path, 0, NULL);
-        if (modid < 0) modid = sceKernelLoadModule(XMBCTRL_PRX_FLASH, 0, NULL); // retry flash0
-        if (modid >= 0) sceKernelStartModule(modid, 0, NULL, NULL, NULL);
-    }
-}
-
 static void checkArkPath(){
     if (strcmp(ark_config->arkpath, SEPLUGINS_MS0) == 0){ // attempt revert to default path 
         strcpy(ark_config->arkpath, DEFAULT_ARK_PATH_GO);
@@ -279,8 +266,6 @@ int InitKernelStartModule(int modid, SceSize argsize, void * argp, int * modstat
     // load plugins before starting mediasync
     if (!pluginLoaded && strcmp(modname, "sceMediaSync") == 0)
     {
-        // Load XMB Control
-        loadXmbControl();
         // Load Plugins
         LoadPlugins();
         // Remember it
