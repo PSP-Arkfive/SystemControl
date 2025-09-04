@@ -38,8 +38,8 @@ OBJS = \
 	src/utility.o \
 	src/patches.o \
 	src/setlongjmp.o \
-	$(ARKSDK)/src/lowerstring.o \
-	$(ARKSDK)/src/strcasecmp.o \
+	$(ARKSDK)/src/ansi-c/lowerstring.o \
+	$(ARKSDK)/src/ansi-c/strcasecmp.o \
 	
 all: $(TARGET).prx
 INCDIR = include $(ARKSDK)/include
