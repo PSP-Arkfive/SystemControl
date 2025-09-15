@@ -36,7 +36,7 @@
 #include "rebootconfig.h"
 #include "sysmem.h"
 #include "psnfix.h"
-#include "loadexec_patch.h"
+#include "loadexec.h"
 #include "gameinfo.h"
 #include "exitgame.h"
 

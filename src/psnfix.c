@@ -16,7 +16,7 @@
  */
 
 #include <pspsdk.h>
-
+#include <psploadcore.h>
 
 
 //fix playstation network account registration
