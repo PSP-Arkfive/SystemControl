@@ -31,7 +31,7 @@
 
 #include <ark.h>
 #include <cfwmacros.h>
-#include <module2.h>
+
 
 #include "rebootex.h"
 #include "nidresolver.h"

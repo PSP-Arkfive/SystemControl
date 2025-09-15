@@ -21,7 +21,7 @@
 #include <pspsdk.h>
 #include <pspinit.h>
 #include <pspdebug.h>
-#include "module2.h"
+
 
 // From pspinit.h
 #define sceKernelApplicationType InitForKernel_7233B5BC

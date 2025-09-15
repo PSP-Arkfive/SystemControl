@@ -7,7 +7,7 @@
 #include <ark.h>
 #include <systemctrl.h>
 #include <cfwmacros.h>
-#include <module2.h>
+
 
 enum{ // internal id
     MODULE_NET_FTP,

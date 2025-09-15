@@ -18,7 +18,7 @@
 #ifndef NIDRESOLVER_H
 #define NIDRESOLVER_H
 
-#include "module2.h"
+
 
 // Missing NID
 typedef struct NidMissingEntry {

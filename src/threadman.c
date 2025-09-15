@@ -4,7 +4,7 @@
 #include <psploadexec_kernel.h>
 #include <psputility_modules.h>
 
-#include <module2.h>
+
 #include <cfwmacros.h>
 #include <systemctrl_se.h>
 

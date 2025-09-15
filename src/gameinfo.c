@@ -6,7 +6,7 @@
 
 #include <ark.h>
 #include <cfwmacros.h>
-#include <module2.h>
+
 #include <systemctrl.h>
 
 #include "rebootex.h"

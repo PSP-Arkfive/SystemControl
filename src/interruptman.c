@@ -23,7 +23,7 @@
 #include <ark.h>
 #include <cfwmacros.h>
 #include <systemctrl.h>
-#include <module2.h>
+
 
 extern ARKConfig* ark_config;
 

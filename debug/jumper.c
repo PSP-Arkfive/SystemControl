@@ -19,7 +19,7 @@
 #include <pspthreadman_kernel.h>
 #include <systemctrl.h>
 #include <cfwmacros.h>
-#include <module2.h>
+
 #include <ark.h>
 
 #if DEBUG >= 2

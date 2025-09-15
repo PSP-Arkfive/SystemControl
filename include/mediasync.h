@@ -18,7 +18,7 @@
 #ifndef _MEDIASYNC_H_
 #define _MEDIASYNC_H_
 
-#include <module2.h>
+
 
 // Patch mediasync.prx
 void patchMediaSync(SceModule* mod);

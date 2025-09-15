@@ -18,7 +18,7 @@
 #ifndef _CRYPTOGRAPHY_H_
 #define _CRYPTOGRAPHY_H_
 
-#include <module2.h>
+
 
 // Patch Memlmd Cryptography
 SceModule* patchMemlmd(void);

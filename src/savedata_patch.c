@@ -20,7 +20,7 @@
 #include <psputility.h>
 
 #include <ark.h>
-#include <module2.h>
+
 #include <systemctrl.h>
 
 extern ARKConfig config;

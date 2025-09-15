@@ -1,7 +1,7 @@
 #ifndef GAMEINFO_H
 #define GAMEINFO_H
 
-#include "module2.h"
+
 
 void findGameId();
 

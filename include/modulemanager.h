@@ -18,7 +18,7 @@
 #ifndef _MODULEMANAGER_H_
 #define _MODULEMANAGER_H_
 
-#include <module2.h>
+
 
 // Module Start Handler
 extern int (* g_module_start_handler)(SceModule *);

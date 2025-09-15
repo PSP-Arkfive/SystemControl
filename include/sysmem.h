@@ -18,7 +18,7 @@
 #ifndef _SYSMEM_H_
 #define _SYSMEM_H_
 
-#include <module2.h>
+
 
 typedef struct {
     u32 addr;
