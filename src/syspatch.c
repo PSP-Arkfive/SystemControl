@@ -252,11 +252,13 @@ static int ARKSyspatchOnModuleStart(SceModule2 * mod)
                 }
             }
 
-            // handle CPU speed settings
-            switch (se_config.cpubus_clock){
-                case 1: sctrlHENSetSpeed(333, 166); break;
-                case 2: sctrlHENSetSpeed(133, 66); break;
-                case 3: sctrlHENSetSpeed(222, 111); break;
+            if (sctrlHENIsToolKit() != 2){
+                // handle CPU speed settings
+                switch (se_config.cpubus_clock){
+                    case 1: sctrlHENSetSpeed(333, 166); break;
+                    case 2: sctrlHENSetSpeed(133, 66); break;
+                    case 3: sctrlHENSetSpeed(222, 111); break;
+                }
             }
             
             #ifdef DEBUG
