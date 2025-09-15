@@ -83,7 +83,7 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
     
     u32 epc = regs->epc;
     {
-        SceModule2* mod = sceKernelFindModuleByAddress(epc);
+        SceModule* mod = sceKernelFindModuleByAddress(epc);
         if (mod != NULL){
             PRTSTR1("Instruction at EPC: %p", _lw(epc)); // TODO: disassemble instruction
             PRTSTR2("From Module: %s @ %p", mod->modname, epc-mod->text_addr);
@@ -91,7 +91,7 @@ static void ARKExceptionHandler(PspDebugRegBlock * regs)
     }
     u32 ra = regs->r[31];
     {        
-        SceModule2* mod = sceKernelFindModuleByAddress(ra);
+        SceModule* mod = sceKernelFindModuleByAddress(ra);
         if (mod != NULL){
             PRTSTR1("Instruction at RA:  %p", _lw(ra)); // TODO: disassemble instruction
             PRTSTR2("From Module: %s @ %p", mod->modname, ra-mod->text_addr);

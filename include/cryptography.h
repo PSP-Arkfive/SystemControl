@@ -21,10 +21,10 @@
 #include <module2.h>
 
 // Patch Memlmd Cryptography
-SceModule2* patchMemlmd(void);
+SceModule* patchMemlmd(void);
 
 // Patch MesgLed Cryptography
-void patchMesgLed(SceModule2* mod);
+void patchMesgLed(SceModule* mod);
 
 // Get PSID from OpenPSID driver
 int getPsid(unsigned char psid[16]);

@@ -20,7 +20,7 @@
 #include <module2.h>
 
 //fix playstation network account registration
-void patch_npsignup(SceModule2* mod)
+void patch_npsignup(SceModule* mod)
 {
     //ImageVersion = 0x10000000
     //_sw(0x3C041000, mod->text_addr + 0x00038CBC);
@@ -33,7 +33,7 @@ void patch_npsignup(SceModule2* mod)
 }
 
 //fix playstation network login
-void patch_npsignin(SceModule2* mod)
+void patch_npsignin(SceModule* mod)
 {
     //kill connection error
     //_sw(0x10000008, mod->text_addr + 0x00006CF4);
@@ -56,7 +56,7 @@ void patch_npsignin(SceModule2* mod)
 }
 
 //fake hardcoded np version for npmatching library (psp2, fat princess, etc.)
-void patch_np(SceModule2* mod, u8 major, u8 minor)
+void patch_np(SceModule* mod, u8 major, u8 minor)
 {
     //np firmware version spoof
     //_sb(mayor, mod->text_addr + 0x00004604);

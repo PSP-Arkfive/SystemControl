@@ -610,7 +610,7 @@ void loadSettings(){
     }
 }
 
-static int needs_devicename_patch(SceModule2* mod){
+static int needs_devicename_patch(SceModule* mod){
     for (int i=0; i<mod->nsegment; ++i) {
         u32 end = mod->segmentaddr[i] + mod->segmentsize[i];
         for(u32 addr = mod->segmentaddr[i]; addr < end; addr ++) {
@@ -638,7 +638,7 @@ static int needs_devicename_patch(SceModule2* mod){
 
 static void patch_devicename(SceUID modid)
 {
-    SceModule2* mod = (SceModule2*)sceKernelFindModuleByUID(modid);
+    SceModule* mod = (SceModule*)sceKernelFindModuleByUID(modid);
 
     if(mod == NULL || !needs_devicename_patch(mod)) {
         return;

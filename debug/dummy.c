@@ -22,6 +22,6 @@ int printkInit(const char *output){return 0;}
 int printkSync(void){return 0;}
 void installJALTrace(unsigned int address){}
 void installMemoryJALTrace(unsigned int start, unsigned int size){}
-void installModuleJALTrace(SceModule2 * module){}
+void installModuleJALTrace(SceModule * module){}
 void dumpJAL(unsigned int target, unsigned int ra, unsigned int result){}
 #endif

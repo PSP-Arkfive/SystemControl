@@ -19,7 +19,7 @@
 #define _INTERRUPTMAN_H_
 
 // Interrupt Manager Patch
-SceModule2* patchInterruptMan(void);
+SceModule* patchInterruptMan(void);
 
 #endif
 

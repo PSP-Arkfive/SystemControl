@@ -314,7 +314,7 @@ static void NidSortTable(NidResolverLib *table, unsigned int size)
 }
 
 // Setup NID Resolver in sceLoaderCore
-void setupNidResolver(SceModule2* mod)
+void setupNidResolver(SceModule* mod)
 {
     // Link 660 NID Resolver Table
     nidTable = nidTable660;

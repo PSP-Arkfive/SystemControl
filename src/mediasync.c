@@ -30,7 +30,7 @@
 extern RebootConfigARK rebootex_config;
 
 // Patch mediasync.prx
-void patchMediaSync(SceModule2* mod)
+void patchMediaSync(SceModule* mod)
 {
     u32 text_addr = mod->text_addr;
     u32 top_addr = text_addr+mod->text_size;

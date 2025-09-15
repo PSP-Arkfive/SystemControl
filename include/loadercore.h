@@ -25,7 +25,7 @@ extern u32 sceInitTextAddr;
 extern int (* customStartModule)(int modid, SceSize argsize, void * argp, int * modstatus, SceKernelSMOption * opt);
 
 // Patch Loader Core Module
-SceModule2* patchLoaderCore(void);
+SceModule* patchLoaderCore(void);
 
 #endif
 

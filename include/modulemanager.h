@@ -21,13 +21,13 @@
 #include <module2.h>
 
 // Module Start Handler
-extern int (* g_module_start_handler)(SceModule2 *);
+extern int (* g_module_start_handler)(SceModule *);
 
 // Internal Module Manager Apitype Field
 extern int * kernel_init_apitype;
 
 // sceModuleManager Patch
-SceModule2* patchModuleManager(void);
+SceModule* patchModuleManager(void);
 
 // Executable Patch #1
 int PatchExec1(unsigned char * buffer, int * check);

@@ -21,7 +21,7 @@
 #include <module2.h>
 
 // Patch mediasync.prx
-void patchMediaSync(SceModule2* mod);
+void patchMediaSync(SceModule* mod);
 
 #endif
 

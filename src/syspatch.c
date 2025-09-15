@@ -98,7 +98,7 @@ void patch_qaflags(){
 }
 
 // Module Start Handler
-static int ARKSyspatchOnModuleStart(SceModule2 * mod)
+static int ARKSyspatchOnModuleStart(SceModule * mod)
 {
 
     // System fully booted Status

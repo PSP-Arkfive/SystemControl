@@ -28,10 +28,10 @@
 extern ARKConfig* ark_config;
 
 // Interrupt Manager Patch
-SceModule2* patchInterruptMan(void)
+SceModule* patchInterruptMan(void)
 {
     // Find Module
-    SceModule2* mod = (SceModule2 *)sceKernelFindModuleByName("sceInterruptManager");
+    SceModule* mod = (SceModule *)sceKernelFindModuleByName("sceInterruptManager");
     
     // Fetch Text Address
     u32 addr = mod->text_addr;

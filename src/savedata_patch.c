@@ -61,7 +61,7 @@ int sctrlARKGetGameID(char gameid[GAME_ID_MINIMUM_BUFFER_SIZE])
 }
 
 // Fix Exploit Game Save
-void fixExploitGameModule(SceModule2 * mod)
+void fixExploitGameModule(SceModule * mod)
 {
     // Game ID Buffer
     char gameid[GAME_ID_MINIMUM_BUFFER_SIZE];

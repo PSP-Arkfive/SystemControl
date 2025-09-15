@@ -66,7 +66,7 @@ int module_start(SceSize args, void * argp)
 
     // Apply Module Patches
     patchSystemMemoryManager();
-    SceModule2* loadcore = patchLoaderCore();
+    SceModule* loadcore = patchLoaderCore();
     patchModuleManager();
     patchInterruptMan();
     patchMemlmd();

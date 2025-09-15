@@ -210,10 +210,10 @@ int _mesgledDecrypt(unsigned int * tag, unsigned char * key, unsigned int code, 
 }
 
 // Patch Memlmd Cryptography
-SceModule2* patchMemlmd(void)
+SceModule* patchMemlmd(void)
 {
     // Find Module
-    SceModule2* mod = (SceModule2*)sceKernelFindModuleByName("sceMemlmd");
+    SceModule* mod = (SceModule*)sceKernelFindModuleByName("sceMemlmd");
     
     // Fetch Text Address
     unsigned int text_addr = mod->text_addr;
@@ -254,7 +254,7 @@ SceModule2* patchMemlmd(void)
 }
 
 // Patch MesgLed Cryptography
-void patchMesgLed(SceModule2 * mod)
+void patchMesgLed(SceModule * mod)
 {
     u32 addr;
     u32 topaddr = mod->text_addr + mod->text_size;

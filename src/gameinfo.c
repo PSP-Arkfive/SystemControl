@@ -134,7 +134,7 @@ void * getUMDDataFixed(void)
 }
 
 // Patch Game ID Getter
-void patchGameInfoGetter(SceModule2 * mod)
+void patchGameInfoGetter(SceModule * mod)
 {
     // Kernel Module
     if((mod->text_addr & 0x80000000) != 0)

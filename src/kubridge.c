@@ -229,15 +229,15 @@ int kuKernelInitKeyConfig(void)
     return apptype;
 }
 
-int kuKernelFindModuleByName(char *modname, SceModule2 *mod)
+int kuKernelFindModuleByName(char *modname, SceModule *mod)
 {
-    SceModule2 *pmod;
+    SceModule *pmod;
 
     if(modname == NULL || mod == NULL) {
         return -1;
     }
 
-    pmod = (SceModule2*) sceKernelFindModuleByName(modname);
+    pmod = (SceModule*) sceKernelFindModuleByName(modname);
 
     if(pmod == NULL) {
         return -2;
@@ -248,15 +248,15 @@ int kuKernelFindModuleByName(char *modname, SceModule2 *mod)
     return 0;
 }
 
-int kuKernelFindModuleByAddress(void *addr, SceModule2 *mod)
+int kuKernelFindModuleByAddress(void *addr, SceModule *mod)
 {
-    SceModule2 *pmod;
+    SceModule *pmod;
 
     if(addr == NULL || mod == NULL) {
         return -1;
     }
 
-    pmod = (SceModule2*) sceKernelFindModuleByAddress((unsigned int)addr);
+    pmod = (SceModule*) sceKernelFindModuleByAddress((unsigned int)addr);
 
     if(pmod == NULL) {
         return -2;

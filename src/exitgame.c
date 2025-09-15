@@ -293,7 +293,7 @@ void checkControllerInput(){
 }
 
 // Hook Gamepad Input
-void patchController(SceModule2* mod)
+void patchController(SceModule* mod)
 {
 
     CtrlPeekBufferPositive = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x3A622550);

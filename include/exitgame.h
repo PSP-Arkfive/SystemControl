@@ -2,6 +2,6 @@
 #define EXITGAME_H
 
 void checkControllerInput();
-void patchController(SceModule2* mod);
+void patchController(SceModule* mod);
 
 #endif

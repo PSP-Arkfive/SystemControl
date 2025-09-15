@@ -69,10 +69,10 @@ NidResolverLib * getNidResolverLib(const char *libName);
 unsigned int getNidReplacement(const NidResolverLib *lib, unsigned int nid);
 
 // Missing syscon NID
-void resolve_syscon_driver(SceModule2*);
+void resolve_syscon_driver(SceModule*);
 
 // Initialize NID Resolver
-void setupNidResolver(SceModule2* loadcore);
+void setupNidResolver(SceModule* loadcore);
 
 unsigned int resolveMissingNid(const char * libName, unsigned int nid);
 

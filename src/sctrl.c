@@ -191,7 +191,7 @@ int sctrlPatchModule(char * modname, u32 inst, u32 offset)
     unsigned int k1 = pspSdkSetK1(0);
     
     // Find Target Module
-    SceModule2 * mod = (SceModule2 *)sceKernelFindModuleByName(modname);
+    SceModule * mod = (SceModule *)sceKernelFindModuleByName(modname);
     
     // Found Module
     if(mod != NULL)
@@ -223,7 +223,7 @@ u32 sctrlModuleTextAddr(char * modname)
     unsigned int k1 = pspSdkSetK1(0);
     
     // Find Target Module
-    SceModule2 * mod = (SceModule2 *)sceKernelFindModuleByName(modname);
+    SceModule * mod = (SceModule *)sceKernelFindModuleByName(modname);
     
     // Found Module
     if(mod != NULL)

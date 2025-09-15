@@ -61,10 +61,10 @@ int dumpJALSyscallNumber = -1;
 void dumpJAL(unsigned int target, unsigned int ra, unsigned int result)
 {
     // Find Caller
-    SceModule2 * caller = (SceModule2 *)sceKernelFindModuleByAddress(ra);
+    SceModule * caller = (SceModule *)sceKernelFindModuleByAddress(ra);
     
     // Find Callee
-    SceModule2 * callee = (SceModule2 *)sceKernelFindModuleByAddress(target);
+    SceModule * callee = (SceModule *)sceKernelFindModuleByAddress(target);
     
     // Craft Caller Information
     const char * caller_name = "UNK";
@@ -296,7 +296,7 @@ void installMemoryJALTrace(unsigned int start, unsigned int size)
 }
 
 // Install Whole-Module JAL Trace (NOT STABLE! DON'T DO IT IF NOT DESPERATE!)
-void installModuleJALTrace(SceModule2 * module)
+void installModuleJALTrace(SceModule * module)
 {
     // Valid Argument
     if(module)
@@ -337,6 +337,6 @@ void clearTraceTable(void)
 #else
 void installJALTrace(unsigned int address){}
 void installMemoryJALTrace(unsigned int start, unsigned int size){}
-void installModuleJALTrace(SceModule2 * module){}
+void installModuleJALTrace(SceModule * module){}
 void dumpJAL(unsigned int target, unsigned int ra, unsigned int result){}
 #endif

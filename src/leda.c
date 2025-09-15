@@ -60,7 +60,7 @@ int get_addr(void *outbuf, u32 outcapacity, void *inbuf, void *unk)
 }
 
 STMOD_HANDLER leda_previous = NULL;
-int LedaModulePatch(SceModule2 *mod)
+int LedaModulePatch(SceModule *mod)
 {
 //    u32 text_addr = mod->text_addr;
     char *modinfo=mod->modname;
@@ -79,7 +79,7 @@ int LedaModulePatch(SceModule2 *mod)
 // patch leda
 void patchLedaPlugin(void* handler){
     
-    SceModule2* init = (SceModule2*)sceKernelFindModuleByName("sceInit");
+    SceModule* init = (SceModule*)sceKernelFindModuleByName("sceInit");
 
     // register handler
     KernelLoadModuleMs2_hook = handler;

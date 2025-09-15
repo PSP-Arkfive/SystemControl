@@ -30,7 +30,7 @@
 #include "modulemanager.h"
 
 // Module Start Handler
-int (* g_module_start_handler)(SceModule2 *) = NULL;
+int (* g_module_start_handler)(SceModule *) = NULL;
 
 // Partition Check Function
 int (* realPartitionCheck)(unsigned int *, unsigned int *) = NULL;
@@ -39,14 +39,14 @@ int (* realPartitionCheck)(unsigned int *, unsigned int *) = NULL;
 int * kernel_init_apitype = NULL;
 
 // Prologue Module Function
-int (* prologue_module)(void *, SceModule2 *) = NULL;
+int (* prologue_module)(void *, SceModule *) = NULL;
 
 // Real Executable Check Function
 int sceKernelCheckExecFile(unsigned char * buffer, int * check);
 
 // Function Prototypes
 int _PartitionCheck(unsigned int * st0, unsigned int *check);
-int prologue_module_hook(void * unk0, SceModule2 * mod);
+int prologue_module_hook(void * unk0, SceModule * mod);
 int _sceKernelCheckExecFile(u8 *buffer, int *check);
 int PatchExec1(u8 *buffer, int *check);
 int PatchExec2(u8 *buffer, int *check);
@@ -186,7 +186,7 @@ int _PartitionCheck(unsigned int * st0, unsigned int * check)
 }
 
 // Prologue Module Hook
-int prologue_module_hook(void * unk0, SceModule2 * mod)
+int prologue_module_hook(void * unk0, SceModule * mod)
 {
     // Forward Call
     int result = prologue_module(unk0, mod);
@@ -358,10 +358,10 @@ u32 patchDeviceCheck(u32 addr){
 }
 
 // sceModuleManager Patch
-SceModule2* patchModuleManager()
+SceModule* patchModuleManager()
 {
     // Find Module
-    SceModule2* mod = (SceModule2*)sceKernelFindModuleByName("sceModuleManager");
+    SceModule* mod = (SceModule*)sceKernelFindModuleByName("sceModuleManager");
     u32 text_addr = mod->text_addr;
     u32 top_addr = text_addr+mod->text_size;
     

@@ -210,7 +210,7 @@ static void checkArkPath(){
 int InitKernelStartModule(int modid, SceSize argsize, void * argp, int * modstatus, SceKernelSMOption * opt)
 {
     char modname[28]; memset(modname, 0, sizeof(modname));
-    SceModule2* mod = (SceModule2*) sceKernelFindModuleByUID(modid);
+    SceModule* mod = (SceModule*) sceKernelFindModuleByUID(modid);
     strncpy(modname, mod->modname, sizeof(modname));
 
     int result = -1;
@@ -300,11 +300,11 @@ int patch_sceKernelStartModule_in_bootstart(int (* bootstart)(SceSize, void *), 
 }
 
 // Patch Loader Core Module
-SceModule2* patchLoaderCore(void)
+SceModule* patchLoaderCore(void)
 {
 
     // Find Module
-    SceModule2* mod = (SceModule2 *)sceKernelFindModuleByName("sceLoaderCore");
+    SceModule* mod = (SceModule *)sceKernelFindModuleByName("sceLoaderCore");
 
     // Fetch Text Address
     u32 start_addr = mod->text_addr;
