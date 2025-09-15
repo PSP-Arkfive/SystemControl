@@ -252,7 +252,7 @@ static int ARKSyspatchOnModuleStart(SceModule2 * mod)
                 }
             }
 
-            if (sctrlHENIsToolKit() != 2){
+            if (sctrlHENIsToolKit() != PSP_TOOLKIT_TYPE_DEV){
                 // handle CPU speed settings
                 switch (se_config.cpubus_clock){
                     case 1: sctrlHENSetSpeed(333, 166); break;
