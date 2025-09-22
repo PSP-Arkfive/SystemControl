@@ -60,7 +60,7 @@ int get_addr(void *outbuf, u32 outcapacity, void *inbuf, void *unk)
 }
 
 STMOD_HANDLER leda_previous = NULL;
-void LedaModulePatch(SceModule *mod)
+int LedaModulePatch(SceModule *mod)
 {
 //    u32 text_addr = mod->text_addr;
     char *modinfo = mod->modname;
@@ -72,7 +72,8 @@ void LedaModulePatch(SceModule *mod)
         sctrlFlushCache();
     }
    
-    if (leda_previous) leda_previous(mod);
+    if (leda_previous) return leda_previous(mod);
+    return 0;
 }
 
 // patch leda

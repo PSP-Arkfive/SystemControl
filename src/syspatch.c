@@ -98,7 +98,7 @@ void patch_qaflags(){
 }
 
 // Module Start Handler
-static void ARKSyspatchOnModuleStart(SceModule * mod)
+static int ARKSyspatchOnModuleStart(SceModule * mod)
 {
 
     // System fully booted Status
@@ -283,7 +283,8 @@ flush:
     
 exit:
     // Forward to previous Handler
-    if(previous) previous(mod);
+    if(previous) return previous(mod);
+    return 0;
 }
 
 // Add Module Start Patcher
