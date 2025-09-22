@@ -1106,6 +1106,15 @@ static NidResolverEntry scePaf_nid[] = {
     { 0xE3D530AE, 0x4CF09BA2, },
 };
 
+static NidResolverEntry sceKermit_driver_nid[] = {
+    {0x4F75AA05, 0x36666181}, // sceKermitSendRequest
+};
+
+static NidResolverEntry sceKermitPeripheral_driver_nid[] = {
+    { 0x3943440D, 0x0648E1A3 /* 3.3X */ },
+};
+
+
 NidResolverLib nidTable660[] = {
     NID_ENTRY(SysMemForKernel),
     NID_ENTRY(KDebugForKernel),
@@ -1137,6 +1146,8 @@ NidResolverLib nidTable660[] = {
     NID_ENTRY(sceClockgen_driver),
     NID_ENTRY(sceCodec_driver),
     NID_ENTRY(scePaf),
+    NID_ENTRY(sceKermit_driver),
+    NID_ENTRY(sceKermitPeripheral_driver),
 };
 
 unsigned int nidTableSize660 = NELEMS(nidTable660);
