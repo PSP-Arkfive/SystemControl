@@ -30,7 +30,7 @@
 #include "modulemanager.h"
 
 // Module Start Handler
-int (* g_module_start_handler)(SceModule *) = NULL;
+STMOD_HANDLER g_module_start_handler = NULL;
 
 // Partition Check Function
 int (* realPartitionCheck)(unsigned int *, unsigned int *) = NULL;

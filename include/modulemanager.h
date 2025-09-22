@@ -18,10 +18,10 @@
 #ifndef _MODULEMANAGER_H_
 #define _MODULEMANAGER_H_
 
-
+#include <systemctrl.h>
 
 // Module Start Handler
-extern int (* g_module_start_handler)(SceModule *);
+extern STMOD_HANDLER g_module_start_handler;
 
 // Internal Module Manager Apitype Field
 extern int * kernel_init_apitype;
