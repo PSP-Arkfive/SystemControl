@@ -218,6 +218,14 @@ static int ARKSyspatchOnModuleStart(SceModule * mod)
         if(isSystemBooted())
         {
 
+            // remember last played game
+            extern int isLauncher();
+            if (sceKernelInitKeyConfig() != PSP_INIT_KEYCONFIG_VSH && !isLauncher()){
+                rebootex_config.last_played.apitype = sceKernelInitApitype();
+                memcpy(rebootex_config.last_played.game_id, rebootex_config.game_id, 10);
+                strcpy(rebootex_config.last_played.path, sceKernelInitFileName());
+            }
+
             // extend utility modules
             extern void extendUtilityModules();
             extendUtilityModules();

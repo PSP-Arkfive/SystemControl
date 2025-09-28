@@ -157,7 +157,7 @@ static int isHomebrewRunlevel(){
     return cur_runlevel == RUNLEVEL_HOMEBREW;
 }
 
-static int isLauncher(){
+int isLauncher(){
     char path[ARK_PATH_SIZE];
     strcpy(path, ark_config->arkpath);
     if (ark_config->launcher[0]) strcat(path, ark_config->launcher);
