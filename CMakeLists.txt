@@ -80,6 +80,7 @@ target_link_libraries(systemctrl PRIVATE
    pspmodinfo
    pspkernel
 )
+add_dependencies(systemctrl CopyPrebuiltSdkLibs)
 
 if(DEBUG)
    target_compile_definitions(systemctrl PRIVATE -DDEBUG=${DEBUG})
