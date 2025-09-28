@@ -52,6 +52,11 @@ int sctrlKernelLoadExecVSHWithApitype(int apitype, const char * file, struct Sce
     // Elevate Permission Level
     unsigned int k1 = pspSdkSetK1(0);
 
+    // remember last played game
+    rebootex_config.last_played.apitype = sceKernelInitApitype();
+    memcpy(rebootex_config.last_played.game_id, rebootex_config.game_id, 10);
+    strcpy(rebootex_config.last_played.path, sceKernelInitFileName());
+
     // obtain game id
     u32 n = sizeof(rebootex_config.game_id);
     memset(rebootex_config.game_id, 0, n);
@@ -117,6 +122,12 @@ int sctrlKernelExitVSH(struct SceKernelLoadExecVSHParam *param)
     u32 k1;
     int ret = -1;
     k1 = pspSdkSetK1(0);
+
+    // remember last played game
+    rebootex_config.last_played.apitype = sceKernelInitApitype();
+    memcpy(rebootex_config.last_played.game_id, rebootex_config.game_id, 10);
+    strcpy(rebootex_config.last_played.path, sceKernelInitFileName());
+
     memset(rebootex_config.game_id, 0, 10);
     ret = _sceKernelExitVSH(param);
     pspSdkSetK1(k1);
