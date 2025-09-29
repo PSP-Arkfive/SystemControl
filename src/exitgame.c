@@ -106,7 +106,7 @@ int sctrlArkExitLauncher()
         ark_config->recovery = 0; // reset recovery mode for next reboot
         sctrlKernelLoadExecVSHWithApitype(0x141, path, &param);
     }
-    else if (ark_config->recovery || (strcmp(ark_config->launcher, "PROSHELL") == 0)){
+    else if (ark_config->recovery){
         // no recovery app? try classic module
         strcpy(path, ark_config->arkpath);
         strcat(path, RECOVERY_PRX);
