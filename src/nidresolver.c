@@ -120,14 +120,14 @@ unsigned int getNidReplacement(const NidResolverLib *lib, unsigned int nid)
 
 NidMissingEntry nidMissEntrySysclib[] =
 {
-    { 0x89B79CB1, (unsigned int)ownstrcspn,  },
-    { 0x62AE052F, (unsigned int)ownstrspn,   },
-    { 0x87F8D2DA, (unsigned int)ownstrtok,   },
-    { 0x1AB53A58, (unsigned int)ownstrtok_r, },
+    { 0x89B79CB1, (unsigned int)strcspn,  },
+    { 0x62AE052F, (unsigned int)strspn,   },
+    { 0x87F8D2DA, (unsigned int)strtok,   },
+    { 0x1AB53A58, (unsigned int)strtok_r, },
     { 0xD3D1A3B9, (unsigned int)strncat,     },
-    { 0x1D83F344, (unsigned int)ownstrtol,   },
-    { 0x909C228B, (unsigned int)&ownsetjmp,  }, // setjmp
-    { 0x18FE80DB, (unsigned int)&ownlongjmp, }, // longjmp
+    { 0x1D83F344, (unsigned int)strtol10,   },
+    { 0x909C228B, (unsigned int)setjmp,  }, // setjmp
+    { 0x18FE80DB, (unsigned int)longjmp, }, // longjmp
 };
 
 NidMissingResolver missing_SysclibForKernel =

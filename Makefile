@@ -36,7 +36,6 @@ OBJS = \
 	src/threadman.o \
 	src/utility.o \
 	src/patches.o \
-	src/setlongjmp.o \
 	
 all: $(TARGET).prx
 INCDIR = include
