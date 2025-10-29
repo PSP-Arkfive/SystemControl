@@ -5,19 +5,6 @@ project(systemcontrol VERSION 1.0 LANGUAGES C ASM)
 set(DEBUG "" CACHE STRING "Debug level (1,2,3)")
 message(STATUS "DEBUG LEVEL = ${DEBUG}")
 
-include(FetchContent)
-
-FetchContent_Declare(
-    ark-dev-sdk
-    GIT_REPOSITORY https://github.com/PSP-Arkfive/ark-dev-sdk.git
-    GIT_TAG main
-    EXCLUDE_FROM_ALL
-)
-
-FetchContent_MakeAvailable(ark-dev-sdk)
-
-set(ARKSDK ${ark-dev-sdk_SOURCE_DIR})
-
 add_prx_module(systemctrl exports.exp)
 
 target_sources(systemctrl PRIVATE 
@@ -54,20 +41,17 @@ target_sources(systemctrl PRIVATE
 	src/threadman.c
 	src/utility.c
 	src/patches.c
-	src/setlongjmp.S
-   ${ARKSDK}/src/ansi-c/lowerstring.c
-	${ARKSDK}/src/ansi-c/strcasecmp.c
 )
 
 remove_definitions("-D_PSP_FW_VERSION=600")
 add_definitions("-D_PSP_FW_VERSION=660")
 
 target_compile_options(systemctrl PRIVATE -std=c99 -Os -G0 -Wall -fno-pic)
-target_include_directories(systemctrl PRIVATE include ${ARKSDK}/include)
-target_link_directories(systemctrl PRIVATE ${ARKSDK}/libs)
+target_include_directories(systemctrl PRIVATE include)
 target_link_libraries(systemctrl PRIVATE
    -nostartfiles
    -nostdlib
+	ansic
    pspsemaphore_660
    pspinit_kernel_660
    pspsysmem_kernel_660
@@ -80,7 +64,6 @@ target_link_libraries(systemctrl PRIVATE
    pspmodinfo
    pspkernel
 )
-add_dependencies(systemctrl CopyPrebuiltSdkLibs)
 
 if(DEBUG)
    target_compile_definitions(systemctrl PRIVATE -DDEBUG=${DEBUG})
