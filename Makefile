@@ -1,7 +1,6 @@
-TARGET = systemctrl
-
 PSPSDK = $(shell psp-config --pspsdk-path)
-ARKSDK ?= ../ark-dev-sdk
+
+TARGET = systemctrl
 
 OBJS = \
 	main.o \
@@ -38,11 +37,9 @@ OBJS = \
 	src/utility.o \
 	src/patches.o \
 	src/setlongjmp.o \
-	$(ARKSDK)/src/ansi-c/lowerstring.o \
-	$(ARKSDK)/src/ansi-c/strcasecmp.o \
 	
 all: $(TARGET).prx
-INCDIR = include $(ARKSDK)/include
+INCDIR = include
 CFLAGS = -std=c99 -Os -G0 -Wall -fno-pic
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
@@ -53,9 +50,10 @@ PRX_EXPORTS = exports.exp
 USE_KERNEL_LIBC=1
 USE_KERNEL_LIBS=1
 
-LIBDIR = $(ARKSDK)/libs
+LIBDIR =
 LDFLAGS =  -nostartfiles
-LIBS = -lpspsemaphore_660 \
+LIBS = -lansic \
+	-lpspsemaphore_660 \
 	-lpspinit_kernel_660   \
 	-lpspsysmem_kernel_660  \
 	-lpspsysclib_kernel_660  \

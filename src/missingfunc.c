@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <pspsdk.h>
 
+// TODO: move this to libansic
+
 /*
  * This file contains functions that Sony used to have in the Kernel,
  * but removed for whatever reason they had...
@@ -27,33 +29,6 @@
  * To make life easier for developers, we reimplemented them and export
  * them via our NID Resolver.
  */
-
-// String Concatenate (with size limiter)
-char * strncat(char * dst, const char * src, size_t n)
-{
-    // Valid Copy Size
-    if (n != 0)
-       {
-           // Concatenate Pointer
-        char * d = dst + strlen(dst);
-        
-        // Source Pointer
-        const char * s = src;
-        
-        // Byte Counter
-        int i = 0; for(; i < n; i++)
-        {
-            // Copy Byte
-            *d = *s;
-            
-            // End of String
-            if(*d == 0) break;
-        }
-    }
-    
-    // Return Buffer
-    return dst;
-}
 
 // Search Needle in Haystack
 int ownstrcspn(char * str1, char * str2)
