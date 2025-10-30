@@ -20,7 +20,6 @@ OBJS = \
 	src/hooknids.o \
 	src/nidresolver.o \
 	src/nid_660_data.o \
-	src/missingfunc.o \
 	src/rebootex.o \
 	src/sysmem.o \
 	src/lz4.o \
@@ -36,6 +35,7 @@ OBJS = \
 	src/threadman.o \
 	src/utility.o \
 	src/patches.o \
+	src/missingfunc.o \
 	src/setlongjmp.o
 	
 all: $(TARGET).prx

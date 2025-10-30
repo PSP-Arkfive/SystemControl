@@ -30,6 +30,22 @@
  * `strncat` on ansi-c/strsafe.c
  */
 
+// Number Parser for Decimal Numbers
+int strtol10(const char * str, int * res)
+{
+    // End Pointer
+    char * endptr = NULL;
+
+    // Forward Call (with Base 10)
+    int result = strtol(str, &endptr, 10);
+
+    // Return Result in Parameter
+    if (res) *res = result;
+
+    // Return Result
+    return result;
+}
+
 // Search Needle in Haystack
 size_t strcspn(const char * str1, const char * str2)
 {
@@ -137,22 +153,6 @@ char * strtok(char * s, const char * delim)
 
     // Recursive Token Implementation
     return strtok_r(s, delim, &last);
-}
-
-// Number Parser for Decimal Numbers
-int strtol10(const char * str, int * res)
-{
-    // End Pointer
-    char * endptr = NULL;
-
-    // Forward Call (with Base 10)
-    int result = strtol(str, &endptr, 10);
-
-    // Return Result in Parameter
-    if (res) *res = result;
-
-    // Return Result
-    return result;
 }
 
 void lowerString(char* orig, char* ret, int strSize){
