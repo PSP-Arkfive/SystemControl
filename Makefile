@@ -36,6 +36,7 @@ OBJS = \
 	src/threadman.o \
 	src/utility.o \
 	src/patches.o \
+	src/setlongjmp.o
 	
 all: $(TARGET).prx
 INCDIR = include
@@ -50,8 +51,8 @@ USE_KERNEL_LIBC=1
 USE_KERNEL_LIBS=1
 
 LIBDIR =
-LDFLAGS =  -nostartfiles
-LIBS = -lansic \
+LDFLAGS = -nostartfiles
+LIBS = \
 	-lpspsemaphore_660 \
 	-lpspinit_kernel_660   \
 	-lpspsysmem_kernel_660  \
