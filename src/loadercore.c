@@ -39,7 +39,7 @@
 #include "gameinfo.h"
 #include "exitgame.h"
 
-extern SEConfig se_config;
+extern SEConfigARK se_config;
 
 // init.prx Text Address
 u32 sceInitTextAddr = 0;

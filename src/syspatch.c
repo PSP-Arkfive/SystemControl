@@ -42,7 +42,7 @@
 
 extern u32 sctrlHENFakeDevkitVersion();
 extern int is_plugins_loading;
-extern SEConfig se_config;
+extern SEConfigARK se_config;
 
 // Previous Module Start Handler
 STMOD_HANDLER previous = NULL;
@@ -248,15 +248,15 @@ static int ARKSyspatchOnModuleStart(SceModule * mod)
                 if (p2_size>24 || se_config.force_high_memory){
                     se_config.iso_cache_partition = 2;
                 }
+                // set cache policy first
+                int (*CacheSetPolicy)(int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
+                if (CacheSetPolicy){
+                    CacheSetPolicy(se_config.iso_cache_type);
+                }
+                // enable cache
                 int (*CacheInit)(u32, u32, u32) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0x8CDE7F95);
                 if (CacheInit){
                     CacheInit((u32)se_config.iso_cache_size_kb*1024, se_config.iso_cache_num, se_config.iso_cache_partition);
-                }
-                if (se_config.iso_cache_type == 2){
-                    int (*CacheSetPolicy)(int) = (void*)sctrlHENFindFunction("PRO_Inferno_Driver", "inferno_driver", 0xC0736FD6);
-                    if (CacheSetPolicy){
-                        CacheSetPolicy(CACHE_POLICY_RR);
-                    }
                 }
             }
 

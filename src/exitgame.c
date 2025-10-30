@@ -31,7 +31,7 @@
 #define EXIT_MASK_VSH (PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER | PSP_CTRL_SELECT | PSP_CTRL_DOWN)
 
 extern ARKConfig* ark_config;
-extern SEConfig se_config;
+extern SEConfigARK se_config;
 extern int disable_plugins;
 extern int disable_settings;
 

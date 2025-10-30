@@ -34,7 +34,7 @@
 #define LINE_TOKEN_DELIMITER ','
 
 extern ARKConfig* ark_config;
-extern SEConfig se_config;
+extern SEConfigARK se_config;
 extern int lowerString(char*, char*, int);
 
 #define MAX_PLUGINS 64

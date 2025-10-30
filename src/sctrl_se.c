@@ -39,7 +39,7 @@
 #include "loadercore.h"
 #include "imports.h"
 
-SEConfig se_config = {
+SEConfigARK se_config = {
     .magic = ARK_CONFIG_MAGIC,
     .umdseek = 0,
     .cpubus_clock = 0,
@@ -89,7 +89,7 @@ int sctrlSEApplyConfig(SEConfig *config) __attribute__((alias("sctrlSESetConfig"
 SEConfig* sctrlSEGetConfig(SEConfig *config)
 {
     if (config) memcpy(config, &se_config, sizeof(SEConfig));
-    return &se_config;
+    return (SEConfig*)&se_config;
 }
 
 /**
@@ -104,7 +104,7 @@ SEConfig* sctrlSEGetConfigEx(SEConfig *config, int size)
     if (config && size == sizeof(SEConfig)){
         memcpy(config, &se_config, size);
     }
-    return &se_config;
+    return (SEConfig*)&se_config;
 }
 
 /**
