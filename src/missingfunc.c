@@ -31,7 +31,7 @@
  */
 
 // Search Needle in Haystack
-int ownstrcspn(char * str1, char * str2)
+size_t strcspn(const char * str1, const char * str2)
 {
     // Iterate Symbols from Haystack
     unsigned int i = 0; for(; i < strlen(str1); i++)
@@ -49,7 +49,7 @@ int ownstrcspn(char * str1, char * str2)
 }
 
 // Inverse Needle Search in Haystack
-int ownstrspn(char * str1, char * str2)
+size_t strspn(const char * str1, const char * str2)
 {
     // Iterate Symbols from Haystack
     unsigned int i = 0; for(; i < strlen(str1); i++)
@@ -66,7 +66,7 @@ int ownstrspn(char * str1, char * str2)
     return i;
 }
 
-char * ownstrtok_r(char * s, const char * delim, char ** last)
+char * strtok_r(char * s, const char * delim, char ** last)
 {
     // Required Variables
     char * spanp = NULL;
@@ -130,17 +130,17 @@ cont:
 }
 
 // String Token Function
-char * ownstrtok(char * s, const char * delim)
+char * strtok(char * s, const char * delim)
 {
     // Last Token
     char* last = NULL;
 
     // Recursive Token Implementation
-    return ownstrtok_r(s, delim, &last);
+    return strtok_r(s, delim, &last);
 }
 
 // Number Parser for Decimal Numbers
-int ownstrtol(const char * str, int * res)
+int strtol10(const char * str, int * res)
 {
     // End Pointer
     char * endptr = NULL;

@@ -3,11 +3,11 @@
 
 #define zr 0
 
-	.global ownsetjmp
-	.global ownlongjmp
+	.global setjmp
+	.global longjmp
 
-	.ent ownsetjmp
-ownsetjmp:
+	.ent setjmp
+setjmp:
 	sw         $ra, 0($a0)
 	sw         $gp, 44($a0)
 	sw         $sp, 4($a0)
@@ -22,10 +22,10 @@ ownsetjmp:
 	sw         $s7, 40($a0)
 	jr         $ra
 	move       $v0, $zr
-	.end ownsetjmp
+	.end setjmp
 
-	.ent ownlongjmp
-ownlongjmp:
+	.ent longjmp
+longjmp:
 	lw         $ra, 0($a0)
 	lw         $gp, 44($a0)
 	lw         $sp, 4($a0)
@@ -40,4 +40,4 @@ ownlongjmp:
 	lw         $s7, 40($a0)
 	jr         $ra
 	move       $v0, $a1
-	.end ownlongjmp
+	.end longjmp

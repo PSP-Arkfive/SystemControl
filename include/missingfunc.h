@@ -23,14 +23,16 @@
  * Contains all reimplemented Function Prototypes that Sony removed in Updates.
  */
 
-int ownsetjmp(void);
-int ownlongjmp(void);
-int ownstrcspn(char * str1, char * str2);
-int ownstrspn(char * str1, char * str2);
-char * ownstrtok(char * s, const char * delim);
-char * ownstrtok_r(char * s, const char * delim, char ** last);
+int setjmp(void);
+int longjmp(void);
+/*
+int strcspn(char * str1, char * str2);
+int strspn(char * str1, char * str2);
 char * strncat(char * dst, const char * src, size_t n);
-int ownstrtol(const char * str, int * res);
+char * strtok(char * s, const char * delim);
+*/
+char * strtok_r(char * s, const char * delim, char ** last);
+int strtol10(const char * str, int * res);
 int strcasecmp(const char * a, const char * b);
 
 #endif
