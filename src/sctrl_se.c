@@ -88,7 +88,7 @@ int sctrlSEApplyConfig(SEConfig *config) __attribute__((alias("sctrlSESetConfig"
 */
 SEConfig* sctrlSEGetConfig(SEConfig *config)
 {
-    if (config) memcpy(config, &se_config, sizeof(SEConfig));
+    if (config) memcpy(config, &se_config, sizeof(SEConfigARK));
     return (SEConfig*)&se_config;
 }
 
@@ -101,7 +101,7 @@ SEConfig* sctrlSEGetConfig(SEConfig *config)
 */
 SEConfig* sctrlSEGetConfigEx(SEConfig *config, int size)
 {
-    if (config && size == sizeof(SEConfig)){
+    if (config && size == sizeof(SEConfigARK)){
         memcpy(config, &se_config, size);
     }
     return (SEConfig*)&se_config;
@@ -117,7 +117,7 @@ SEConfig* sctrlSEGetConfigEx(SEConfig *config, int size)
 */
 int sctrlSESetConfig(SEConfig *config)
 {
-    memcpy(&se_config, config, sizeof(SEConfig));
+    memcpy(&se_config, config, sizeof(SEConfigARK));
     return 0;
 }
 
@@ -130,7 +130,7 @@ int sctrlSESetConfig(SEConfig *config)
 */
 int sctrlSESetConfigEx(SEConfig *config, int size)
 {
-    if (config && size == sizeof(SEConfig)){
+    if (config && size == sizeof(SEConfigARK)){
         memcpy(&se_config, config, size);
         return 0;
     }
